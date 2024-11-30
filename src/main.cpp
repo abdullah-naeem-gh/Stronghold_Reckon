@@ -1,26 +1,28 @@
+// main.cpp
 #include <SFML/Graphics.hpp>
 #include "MapScreen.hpp"
-#include <iostream> // For debug output
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Stronghold Reckoning");
-    MapScreen mapScreen;
+    const int WINDOW_WIDTH = 1280;
+    const int WINDOW_HEIGHT = 720;
+    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Stronghold Reckoning");
+    window.setFramerateLimit(60);
+
+    // Initialize MapScreen with 20 rows x 20 columns
+    MapScreen mapScreen(20, 20, window.getSize());
 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-
-            // Check if window close event is detected
-            if (event.type == sf::Event::Closed) {
+            if (event.type == sf::Event::Closed)
                 window.close();
-            }
 
-            // Handle events through map screen logic
-            mapScreen.handleEvents(event);
+            mapScreen.handleEvents(event, window);
         }
 
-        // Draw the map screen and handle all rendering
+        window.clear(sf::Color::Black);
         mapScreen.draw(window);
+        window.display();
     }
 
     return 0;

@@ -1,27 +1,28 @@
+// Building.hpp
 #ifndef BUILDING_HPP
-   #define BUILDING_HPP
+#define BUILDING_HPP
 
-   #include <SFML/Graphics.hpp>
+#include <SFML/Graphics.hpp>
+#include <memory>
+#include <vector>
 
-   class Building {
-   public:
-       Building();
-       Building(const Building&) = delete; // Prevent copying
-       Building& operator=(const Building&) = delete; // Prevent assignment
+// Forward declaration to avoid circular dependency (if necessary)
+class Tile;
 
-       // Optionally, make it movable
-       Building(Building&&) noexcept = default;
-       Building& operator=(Building&&) noexcept = default;
+class Building {
+public:
+    Building(int id, float x, float y, const std::string& texturePath);
+    int getId() const;
+    void setPosition(float x, float y);
+    sf::Vector2f getPosition() const;
+    void draw(sf::RenderWindow& window) const;
 
-       void setPosition(int row, int col);
-       void draw(sf::RenderWindow& window) const;
+private:
+    int id;
+    sf::Sprite sprite;
+    // Additional properties like health, defense level, etc., can be added here
+    static const int BUILDING_WIDTH = 64;  // Match tile width
+    static const int BUILDING_HEIGHT = 64; // Adjust height as needed
+};
 
-       // Function to ensure texture is loaded only once
-       static bool loadTexture(const std::string& filePath);
-
-   private:
-       static sf::Texture buildingTexture;
-       sf::Sprite buildingSprite;
-   };
-
-   #endif // BUILDING_HPP
+#endif // BUILDING_HPP

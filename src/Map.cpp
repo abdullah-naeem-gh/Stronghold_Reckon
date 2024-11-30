@@ -1,42 +1,54 @@
+// Map.cpp
 #include "Map.hpp"
 #include <iostream>
 
-const int TILE_WIDTH = 30; // Adjust based on your tile size
-const int TILE_HEIGHT = 15; // Adjust based on your tile size
-
-Map::Map() {
-    if (!mapTexture.loadFromFile("../assets/green_surface.png")) {
-        std::cerr << "Error loading texture" << std::endl;
-    }
-    mapSprite.setTexture(mapTexture);
-    mapSprite.setScale(
-        static_cast<float>(TILE_WIDTH) / mapTexture.getSize().x,
-        static_cast<float>(TILE_HEIGHT) / mapTexture.getSize().y
-    );
+Map::Map(int rows, int cols) : rows(rows), cols(cols), nextBuildingId(1) {
+    initializeTiles();
 }
 
-void Map::draw(sf::RenderWindow &window) {
-    int numRows = 25; // Number of rows in the map
-    int numCols = 25; // Number of columns in the map
-
-    // Calculate the total width and height of the map
-    int mapWidth = (numCols + numRows) * TILE_WIDTH / 2;
-    int mapHeight = (numCols + numRows) * TILE_HEIGHT / 2;
-
-    // Calculate the starting position to center the map
-    int startX = window.getSize().x / 2 - mapWidth / 2 + 350;
-    int startY = window.getSize().y / 2 - mapHeight / 2;
-
-    // Iterate through each tile and draw it
-    for (int row = 0; row < numRows; ++row) {
-        for (int col = 0; col < numCols; ++col) {
-            // Calculate the position for each tile
-            int x = (col - row) * TILE_WIDTH / 2 + startX;
-            int y = (col + row) * TILE_HEIGHT / 2 + startY;
-
-            // Set the position of the sprite and draw it
-            mapSprite.setPosition(static_cast<float>(x), static_cast<float>(y));
-            window.draw(mapSprite);
+void Map::initializeTiles() {
+    tiles.resize(rows, std::vector<std::shared_ptr<Tile>>(cols, nullptr));
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            tiles[row][col] = std::make_shared<Tile>(row, col);
+            // Calculate isometric position
+            float x = (col - row) * (Tile::TILE_WIDTH / 2.0f) + START_X;
+            float y = (col + row) * (Tile::TILE_HEIGHT / 2.0f) + START_Y;
+            tiles[row][col]->setPosition(x, y);
         }
     }
+}
+
+std::shared_ptr<Tile> Map::getTile(int row, int col) const {
+    if (row < 0 || row >= rows || col < 0 || col >= cols)
+        return nullptr;
+    return tiles[row][col];
+}
+
+std::shared_ptr<Building> Map::addBuilding(int row, int col, const std::string& buildingTexture) {
+    auto tile = getTile(row, col);
+    if (!tile) {
+        std::cerr << "Invalid tile coordinates.\n";
+        return nullptr;
+    }
+    if (tile->getBuilding()) {
+        std::cerr << "Tile already has a building.\n";
+        return nullptr;
+    }
+    float x = tile->getPosition().x;
+    float y = tile->getPosition().y;
+    auto building = std::make_shared<Building>(nextBuildingId++, x, y, buildingTexture);
+    buildings.push_back(building);
+    tile->setBuilding(building);
+    return building;
+}
+
+void Map::draw(sf::RenderWindow& window) const {
+    // Draw tiles in row-major order (top to bottom, left to right)
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            tiles[row][col]->draw(window);
+        }
+    }
+    // Buildings are drawn within Tile::draw()
 }

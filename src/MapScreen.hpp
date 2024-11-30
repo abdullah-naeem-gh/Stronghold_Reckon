@@ -1,20 +1,23 @@
+// MapScreen.hpp
 #ifndef MAPSCREEN_HPP
-   #define MAPSCREEN_HPP
+#define MAPSCREEN_HPP
 
-   #include <SFML/Graphics.hpp>
-   #include "Map.hpp"
-   #include "Building.hpp"
-   #include <vector>
-   #include <memory> // Include memory for smart pointers
+#include <SFML/Graphics.hpp>
+#include "Map.hpp"
+#include "UIManager.hpp"
+#include "IsometricUtils.hpp" // Include IsometricUtils
 
-   class MapScreen {
-   public:
-       MapScreen();
-       void handleEvents(const sf::Event& event);
-       void draw(sf::RenderWindow &window);
-   private:
-       Map mapEntity;
-       std::vector<std::unique_ptr<Building>> buildings; // Use smart pointers
-   };
+class MapScreen {
+public:
+    MapScreen(int rows, int cols, const sf::Vector2u& windowSize);
+    void handleEvents(const sf::Event& event, sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window);
+    void setSelectedBuildingType(const std::string& buildingTexture);
 
-   #endif // MAPSCREEN_HPP
+private:
+    Map mapEntity;
+    UIManager uiManager;
+    std::string selectedBuildingTexture; // Path to the selected building's texture
+};
+
+#endif // MAPSCREEN_HPP

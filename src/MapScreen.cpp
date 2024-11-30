@@ -1,44 +1,58 @@
 // MapScreen.cpp
-   #include "MapScreen.hpp"
-   #include <iostream>
-   #include <memory> // Include memory for std::unique_ptr
+#include "MapScreen.hpp"
+#include <iostream>
 
-   const int TILE_WIDTH = 30;  // Adjust based on your tile size
-   const int TILE_HEIGHT = 15; // Adjust based on your tile size
+MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
+    : mapEntity(rows, cols), uiManager(windowSize) {
+    // Pass a callback to UIManager to handle building selection
+    uiManager.loadUI([this](const std::string& buildingTexture) {
+        setSelectedBuildingType(buildingTexture);
+    });
+}
 
-   MapScreen::MapScreen() {
-       if (!Building::loadTexture("../assets/building1.png")) {
-           std::cerr << "Failed to load building texture." << std::endl;
-           // Handle texture loading failure if necessary
-       }
-   }
+void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
+    uiManager.handleEvent(event, window);
 
-   void MapScreen::handleEvents(const sf::Event& event) {
-       if (event.type == sf::Event::MouseButtonPressed) {
-           std::cout << "Mouse button pressed event detected" << std::endl;
-           if (event.mouseButton.button == sf::Mouse::Left) {
-               std::cout << "Left mouse button detected" << std::endl;
-               int mouseX = event.mouseButton.x;
-               int mouseY = event.mouseButton.y;
-               int col = ((mouseX / (TILE_WIDTH / 2)) + (mouseY / (TILE_HEIGHT / 2))) / 2;
-               int row = ((mouseY / (TILE_HEIGHT / 2)) - (mouseX / (TILE_WIDTH / 2))) / 2;
-               std::cout << "Mouse Click at: (" << mouseX << ", " << mouseY << ")" << std::endl;
-               std::cout << "Calculated Tile Position: Row " << row << ", Col " << col << std::endl;
+    if (event.type == sf::Event::MouseButtonPressed &&
+        event.mouseButton.button == sf::Mouse::Left) {
+        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+        float x = static_cast<float>(mousePos.x);
+        float y = static_cast<float>(mousePos.y);
 
-               // Create a unique_ptr to a new Building
-               std::unique_ptr<Building> building(new Building());
-               building->setPosition(row, col);
-               buildings.push_back(std::move(building));
-               std::cout << "Building added at Row: " << row << ", Col: " << col << std::endl;
-           }
-       }
-   }
+        // Check if the click is outside the toolbar
+        if (y < static_cast<float>(window.getSize().y) - 100.0f) { // Assuming toolbarHeight = 100
+            if (!selectedBuildingTexture.empty()) {
+                // Convert screen (x, y) to isometric (row, col) using utility
+                TileCoordinates tc = IsometricUtils::screenToTile(x, y);
+                int row = tc.row;
+                int col = tc.col;
 
-   void MapScreen::draw(sf::RenderWindow& window) {
-       window.clear(sf::Color::Black);
-       mapEntity.draw(window);
-       for (const auto& building : buildings) {
-           building->draw(window);
-       }
-       window.display();
-   }
+                // Validate tile coordinates
+                auto tile = mapEntity.getTile(row, col);
+                if (tile) {
+                    // Avoid placing buildings on non-grass tiles if needed
+                    if (tile->getType() == TileType::Grass) {
+                        auto building = mapEntity.addBuilding(row, col, selectedBuildingTexture);
+                        if (building) {
+                            std::cout << "Building added at Row " << row << ", Col " << col << std::endl;
+                        }
+                    } else {
+                        std::cout << "Cannot place building on this tile type." << std::endl;
+                    }
+                } else {
+                    std::cout << "Clicked outside the map boundaries." << std::endl;
+                }
+            }
+        }
+    }
+}
+
+void MapScreen::draw(sf::RenderWindow& window) {
+    mapEntity.draw(window);
+    uiManager.draw(window);
+}
+
+void MapScreen::setSelectedBuildingType(const std::string& buildingTexture) {
+    selectedBuildingTexture = buildingTexture;
+    std::cout << "Selected Building Texture: " << buildingTexture << std::endl;
+}

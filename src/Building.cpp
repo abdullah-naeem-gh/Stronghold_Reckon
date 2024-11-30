@@ -1,40 +1,36 @@
+// Building.cpp
 #include "Building.hpp"
-   #include <iostream>
+#include "TextureManager.hpp"
+#include <iostream>
 
-   const int TILE_WIDTH = 30;  // Adjust based on your tile size
-   const int TILE_HEIGHT = 15; // Adjust based on your tile size
+Building::Building(int id, float x, float y, const std::string& texturePath) : id(id) {
+    auto texture = TextureManager::getInstance().getTexture(texturePath);
+    if (!texture) {
+        std::cerr << "Building texture not loaded: " << texturePath << std::endl;
+    } else {
+        sprite.setTexture(*texture);
+        // Position the building so that its bottom center aligns with the tile's top center
+        sprite.setPosition(x - (BUILDING_WIDTH / 2.0f), y - BUILDING_HEIGHT);
+        // Adjust scaling based on asset size
+        sprite.setScale(
+            static_cast<float>(BUILDING_WIDTH) / texture->getSize().x,
+            static_cast<float>(BUILDING_HEIGHT) / texture->getSize().y
+        );
+    }
+}
 
-   // Initialize the static texture
-   sf::Texture Building::buildingTexture;
+int Building::getId() const {
+    return id;
+}
 
-   // Static method to load the texture once
-   bool Building::loadTexture(const std::string& filePath) {
-       if (!buildingTexture.loadFromFile(filePath)) {
-           std::cerr << "Error: Could not load building texture from " << filePath << std::endl;
-           return false;
-       }
-       std::cout << "Building texture loaded successfully!" << std::endl;
-       sf::Vector2u textureSize = buildingTexture.getSize();
-       std::cout << "Building texture size: " << textureSize.x << "x" << textureSize.y << std::endl;
-       return true;
-   }
+void Building::setPosition(float x, float y) {
+    sprite.setPosition(x - (BUILDING_WIDTH / 2.0f), y - BUILDING_HEIGHT);
+}
 
-   Building::Building() {
-       buildingSprite.setTexture(buildingTexture);
-       // Scale sprite to fit tile size
-       sf::Vector2u textureSize = buildingTexture.getSize();
-       buildingSprite.setScale(
-           TILE_WIDTH / static_cast<float>(textureSize.x),
-           TILE_HEIGHT / static_cast<float>(textureSize.y)
-       );
-   }
+sf::Vector2f Building::getPosition() const {
+    return sprite.getPosition();
+}
 
-   void Building::setPosition(int row, int col) {
-       int x = (col - row) * TILE_WIDTH / 2;
-       int y = (col + row) * TILE_HEIGHT / 2;
-       buildingSprite.setPosition(static_cast<float>(x), static_cast<float>(y));
-   }
-
-   void Building::draw(sf::RenderWindow& window) const {
-       window.draw(buildingSprite);
-   }
+void Building::draw(sf::RenderWindow& window) const {
+    window.draw(sprite);
+}
