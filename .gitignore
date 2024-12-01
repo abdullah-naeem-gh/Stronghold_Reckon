@@ -1,6 +1,4 @@
 .vscode
-include
-lib
 share
 src/*.o
 
