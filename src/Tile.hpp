@@ -4,6 +4,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <string>
 
 // Forward declaration to avoid circular dependency
 class Building;
@@ -17,9 +18,9 @@ enum class TileType {
 
 class Tile {
 public:
-    // Make TILE_WIDTH and TILE_HEIGHT public for external access
-    static const int TILE_WIDTH = 64;   // Standard isometric width
-    static const int TILE_HEIGHT = 32;  // Standard isometric height
+    // Define TILE_WIDTH and TILE_HEIGHT as constants
+    static const int TILE_WIDTH = 64; // Standard isometric width
+    static const int TILE_HEIGHT = 32; // Standard isometric height
 
     Tile(int row, int col, TileType type = TileType::Grass);
     void setType(TileType type);
@@ -31,8 +32,9 @@ public:
     void draw(sf::RenderWindow& window) const;
 
 private:
-    int row;
-    int col;
+    // **Removed unused private fields 'row' and 'col'**
+    // int row;
+    // int col;
     TileType type;
     sf::Sprite sprite;
     std::shared_ptr<Building> building;

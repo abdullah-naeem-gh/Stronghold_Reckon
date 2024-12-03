@@ -1,13 +1,9 @@
-// Building.hpp
 #ifndef BUILDING_HPP
 #define BUILDING_HPP
 
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include <vector>
-
-// Forward declaration to avoid circular dependency (if necessary)
-class Tile;
+#include <string>
 
 class Building {
 public:
@@ -17,12 +13,16 @@ public:
     sf::Vector2f getPosition() const;
     void draw(sf::RenderWindow& window) const;
 
+    // Define constants for building dimensions
+    static const int BUILDING_WIDTH = 64;  // Adjust based on your texture size
+    static const int BUILDING_HEIGHT = 64; // Adjust based on your texture size
+    std::string getTexturePath() const; // Function to get texture path
+
 private:
     int id;
     sf::Sprite sprite;
-    // Additional properties like health, defense level, etc., can be added here
-    static const int BUILDING_WIDTH = 64;  // Match tile width
-    static const int BUILDING_HEIGHT = 64; // Adjust height as needed
+    std::string texturePath; // Declare texturePath here
+
 };
 
 #endif // BUILDING_HPP

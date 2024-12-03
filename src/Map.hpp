@@ -3,10 +3,13 @@
 #define MAP_HPP
 
 #include "Tile.hpp"
-#include "Building.hpp"  // Include Building.hpp here
-
+#include "Building.hpp"
+#include "TextureManager.hpp"
 #include <vector>
 #include <memory>
+#include <string>
+#include "IsometricUtils.hpp"
+#include <fstream>
 
 class Map {
 public:
@@ -15,6 +18,14 @@ public:
     std::shared_ptr<Tile> getTile(int row, int col) const;
     std::shared_ptr<Building> addBuilding(int row, int col, const std::string& buildingTexture);
     void draw(sf::RenderWindow& window) const;
+
+    // **Added Getter Methods**
+    int getRows() const;
+    int getCols() const;
+
+    void saveToFile(const std::string &filename);
+
+    void loadFromFile(const std::string &filename);
 
 private:
     int rows;

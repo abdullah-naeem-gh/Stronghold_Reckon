@@ -20,7 +20,7 @@ public:
     void loadUI(const std::function<void(const std::string&)>& buildingSelectCallback);
 
     // Process events related to UI
-    void handleEvent(const sf::Event& event, sf::RenderWindow& window);
+    void handleEvent(const sf::Event& event); // **Removed sf::RenderWindow& window**
 
     // Draw UI elements
     void draw(sf::RenderWindow& window) const;

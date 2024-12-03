@@ -15,9 +15,11 @@ struct TileCoordinates {
 
 class IsometricUtils {
 public:
-    // Declare functions only
-    static sf::Vector2f tileToScreen(int row, int col, float startX = 400.0f, float startY = 50.0f);
-    static TileCoordinates screenToTile(float x, float y, float startX = 400.0f, float startY = 50.0f);
+    // Convert tile indices to screen coordinates
+    static sf::Vector2f tileToScreen(int row, int col, float startX = 0.0f, float startY = 0.0f);
+    
+    // Convert screen coordinates to tile indices
+    static TileCoordinates screenToTile(float x, float y, float startX = 0.0f, float startY = 0.0f);
 };
 
 #endif // ISOMETRICUTILS_HPP

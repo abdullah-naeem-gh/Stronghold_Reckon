@@ -15,5 +15,5 @@ TileCoordinates IsometricUtils::screenToTile(float x, float y, float startX, flo
     float col = (fx / (Tile::TILE_WIDTH / 2.0f) + fy / (Tile::TILE_HEIGHT / 2.0f)) / 2.0f;
     float row = (fy / (Tile::TILE_HEIGHT / 2.0f) - fx / (Tile::TILE_WIDTH / 2.0f)) / 2.0f;
 
-    return TileCoordinates{ static_cast<int>(std::floor(row)), static_cast<int>(std::floor(col)) };
+    return TileCoordinates{ static_cast<int>(std::round(row)), static_cast<int>(std::round(col)) };
 }
