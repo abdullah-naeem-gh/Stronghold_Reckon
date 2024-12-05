@@ -2,8 +2,8 @@
 #define BUILDING_HPP
 
 #include <SFML/Graphics.hpp>
-#include <memory>
 #include <string>
+#include <memory>
 
 class Building {
 public:
@@ -12,17 +12,16 @@ public:
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
     void draw(sf::RenderWindow& window) const;
-
-    // Define constants for building dimensions
-    static const int BUILDING_WIDTH = 64;  // Adjust based on your texture size
-    static const int BUILDING_HEIGHT = 64; // Adjust based on your texture size
-    std::string getTexturePath() const; // Function to get texture path
+    std::string getTexturePath() const;
+    void setTexture(const sf::Texture& texture);
+    
+    static const int BUILDING_WIDTH = 64; // Adjust as needed
+    static const int BUILDING_HEIGHT = 64; // Adjust as needed
 
 private:
     int id;
     sf::Sprite sprite;
-    std::string texturePath; // Declare texturePath here
-
+    std::string texturePath;
 };
 
 #endif // BUILDING_HPP

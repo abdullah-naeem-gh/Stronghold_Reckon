@@ -5,6 +5,7 @@
 #include "Map.hpp"
 #include "UIManager.hpp"
 #include "IsometricUtils.hpp"
+#include "Player.hpp"
 
 class MapScreen {
 public:
@@ -13,21 +14,28 @@ public:
     void draw(sf::RenderWindow& window);
     void setSelectedBuildingType(const std::string& buildingTexture);
     void moveCamera(const sf::Time& deltaTime);
-
     void saveMap(const std::string &filename);
-
     void loadMap(const std::string &filename);
+    Map& getMapEntity() { return mapEntity; }
+
+    void initializePath(); // New method to initialize player pathfinding
 
 private:
     Map mapEntity;
     UIManager uiManager;
+    Player player;
     std::string selectedBuildingTexture;
     sf::View cameraView;
     float cameraSpeed = 300.0f;
+    std::shared_ptr<Tile> selectedTile;
+    std::shared_ptr<Tile> highlightTile1;
+    std::shared_ptr<Tile> highlightTile2;
 
-    std::shared_ptr<Tile> selectedTile;    // Current tile selection
-    std::shared_ptr<Tile> highlightTile1;  // First highlighted tile
-    std::shared_ptr<Tile> highlightTile2;  // Second highlighted tile
+    std::shared_ptr<Tile> findTownhallTile(); // New helper method
+
+    std::vector<std::shared_ptr<Tile>> pathfind(std::shared_ptr<Tile> start, std::shared_ptr<Tile> goal, const Map &map);
+
+    static constexpr int playerInitialRow = 0; // Assuming row 0 for player initial spawn
 };
 
 #endif // MAPSCREEN_HPP

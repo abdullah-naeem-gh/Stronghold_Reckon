@@ -11,29 +11,45 @@ int main() {
     MapScreen mapScreen(100, 100, window.getSize());
 
     sf::Clock deltaClock;
+
     while (window.isOpen()) {
         sf::Time deltaTime = deltaClock.restart();
         sf::Event event;
+
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
+    if (event.type == sf::Event::Closed) {
+        window.close();
+    } else if (event.type == sf::Event::KeyPressed) {
+        switch (event.key.code) {
+            case sf::Keyboard::O:
+                mapScreen.saveMap("savemap.txt");
+                break;
 
-            mapScreen.handleEvents(event, window);
+            case sf::Keyboard::L:
+                mapScreen.loadMap("savemap.txt");
+                break;
 
-            // Handle key presses for save and load
-            if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::O) {
-                    mapScreen.saveMap("savemap.txt");
-                } else if (event.key.code == sf::Keyboard::L) {
-                    mapScreen.loadMap("savemap.txt");
-                }
-            }
+            case sf::Keyboard::Z:
+                mapScreen.getMapEntity().undo();
+                break;
+
+            case sf::Keyboard::Y:
+                mapScreen.getMapEntity().redo();
+                break;
+
+            default:
+                break;
         }
+    }
+    mapScreen.handleEvents(event, window);
+    }
 
         mapScreen.moveCamera(deltaTime);
+
         window.clear(sf::Color::Black);
         mapScreen.draw(window);
         window.display();
     }
+
     return 0;
 }
