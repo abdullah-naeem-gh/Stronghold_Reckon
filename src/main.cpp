@@ -8,7 +8,7 @@ int main() {
     window.setFramerateLimit(60);
 
     // Initialize MapScreen with 100 rows x 100 columns for a large map
-    MapScreen mapScreen(100, 100, window.getSize());
+    MapScreen mapScreen(64, 64, window.getSize());
     sf::Clock deltaClock;
 
     while (window.isOpen()) {

@@ -19,14 +19,15 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     uiManager.handleEvent(event);
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+        // Ensure mouse position conversion accounts for the camera view
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), cameraView);
         TileCoordinates tileCoords = IsometricUtils::screenToTile(mousePos.x, mousePos.y, START_X, START_Y);
+
         auto tile = mapEntity.getTile(tileCoords.row, tileCoords.col);
         if (tile && !selectedBuildingTexture.empty() && !tile->getBuilding()) {
             mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
         }
     }
-    // Remove undo/redo handling here
 }
 
 void MapScreen::draw(sf::RenderWindow& window) {
