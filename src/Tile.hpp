@@ -30,6 +30,8 @@ public:
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
     void draw(sf::RenderWindow& window) const;
+    void updateTexture();
+
 
 private:
     // **Removed unused private fields 'row' and 'col'**
@@ -39,7 +41,6 @@ private:
     sf::Sprite sprite;
     std::shared_ptr<Building> building;
 
-    void updateTexture();
 };
 
 #endif // TILE_HPP
