@@ -1,4 +1,3 @@
-// Tile.hpp
 #ifndef TILE_HPP
 #define TILE_HPP
 
@@ -6,7 +5,7 @@
 #include <memory>
 #include <string>
 
-// Forward declaration to avoid circular dependency
+// Forward declaration
 class Building;
 
 enum class TileType {
@@ -18,11 +17,12 @@ enum class TileType {
 
 class Tile {
 public:
-    // Define TILE_WIDTH and TILE_HEIGHT as constants
-    static const int TILE_WIDTH = 64; // Standard isometric width
+    static const int TILE_WIDTH = 64;  // Standard isometric width
     static const int TILE_HEIGHT = 32; // Standard isometric height
 
     Tile(int row, int col, TileType type = TileType::Grass);
+    Tile(const Tile& other); // Copy constructor
+
     void setType(TileType type);
     TileType getType() const;
     void setBuilding(std::shared_ptr<Building> buildingPtr);
@@ -32,15 +32,10 @@ public:
     void draw(sf::RenderWindow& window) const;
     void updateTexture();
 
-
 private:
-    // **Removed unused private fields 'row' and 'col'**
-    // int row;
-    // int col;
     TileType type;
     sf::Sprite sprite;
     std::shared_ptr<Building> building;
-
 };
 
 #endif // TILE_HPP

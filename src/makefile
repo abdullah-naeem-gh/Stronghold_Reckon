@@ -3,7 +3,7 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -I../include
 LDFLAGS = -L../lib -lsfml-graphics -lsfml-window -lsfml-system
-SRC = main.cpp Map.cpp MapScreen.cpp Building.cpp Tile.cpp TextureManager.cpp UIManager.cpp IsometricUtils.cpp GameState.cpp
+SRC = main.cpp Map.cpp MapScreen.cpp Building.cpp Tile.cpp TextureManager.cpp UIManager.cpp IsometricUtils.cpp GameState.cpp Tank.cpp TankSpawn.cpp
 OBJ = $(SRC:.cpp=.o)
 EXEC = prog
 

@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include "Map.hpp"
 #include "UIManager.hpp"
-#include "IsometricUtils.hpp"
+#include "TankSpawn.hpp"
 
 class MapScreen {
 public:
@@ -15,7 +15,7 @@ public:
     void moveCamera(const sf::Time& deltaTime);
     void saveMap(const std::string &filename);
     void loadMap(const std::string &filename);
-    Map& getMapEntity();  // Method to access Map for actions like undo/redo etc.
+    Map& getMapEntity(); // Method to access Map for actions like undo/redo etc.
 
 private:
     Map mapEntity;
@@ -23,12 +23,9 @@ private:
     std::string selectedBuildingTexture;
     sf::View cameraView;
     float cameraSpeed = 300.0f; // Speed at which the camera moves
-    std::shared_ptr<Tile> selectedTile;
-    std::shared_ptr<Tile> highlightTile1;
-    std::shared_ptr<Tile> highlightTile2;
-
     static const int START_X = 400;
     static const int START_Y = 50;
+    TankSpawn tankSpawn; // Moved inside MapScreen
 };
 
 #endif // MAPSCREEN_HPP

@@ -1,6 +1,7 @@
 #include "IsometricUtils.hpp"
 #include "Tile.hpp"
 #include <cmath>
+#include <iostream>
 
 // Convert tile indices to screen coordinates
 sf::Vector2f IsometricUtils::tileToScreen(int row, int col, float startX, float startY) {

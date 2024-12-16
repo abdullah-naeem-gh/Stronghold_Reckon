@@ -1,13 +1,23 @@
-// Tile.cpp
 #include "Tile.hpp"
-#include "Building.hpp" // Include Building for implementation
+#include "Building.hpp"        // Include Building.hpp here
 #include "TextureManager.hpp"
 #include "IsometricUtils.hpp"
 #include <iostream>
 
 Tile::Tile(int row, int col, TileType type)
-    : type(type), building(nullptr) { // Removed initialization of row and col
+    : type(type), building(nullptr) {
     updateTexture();
+}
+
+Tile::Tile(const Tile& other)
+    : type(other.type), building(nullptr) { // Initialize building after
+    sprite = other.sprite; // sf::Sprite supports copy assignment
+    if (other.building) {
+        building = std::make_shared<Building>(*other.building); // Deep copy
+        setType(TileType::Building);
+    } else {
+        setType(TileType::Grass);
+    }
 }
 
 void Tile::setType(TileType type) {
@@ -44,22 +54,20 @@ sf::Vector2f Tile::getPosition() const {
 void Tile::updateTexture() {
     TextureManager& tm = TextureManager::getInstance();
     std::shared_ptr<sf::Texture> texturePtr;
-
     switch (type) {
-    case TileType::Grass:
-        texturePtr = tm.getTexture("../assets/tiles/grass.png");
-        break;
-    case TileType::Water:
-        texturePtr = tm.getTexture("../assets/tiles/water.png");
-        break;
-    case TileType::Road:
-        texturePtr = tm.getTexture("../assets/tiles/road.png");
-        break;
-    case TileType::Building:
-        texturePtr = tm.getTexture("../assets/tiles/building_tile.png");
-        break;
+        case TileType::Grass:
+            texturePtr = tm.getTexture("../assets/tiles/grass.png");
+            break;
+        case TileType::Water:
+            texturePtr = tm.getTexture("../assets/tiles/water.png");
+            break;
+        case TileType::Road:
+            texturePtr = tm.getTexture("../assets/tiles/road.png");
+            break;
+        case TileType::Building:
+            texturePtr = tm.getTexture("../assets/tiles/building_tile.png");
+            break;
     }
-
     if (texturePtr) {
         sprite.setTexture(*texturePtr);
         // Ensure the texture fills the tile
@@ -75,7 +83,6 @@ void Tile::updateTexture() {
 void Tile::draw(sf::RenderWindow& window) const {
     window.draw(sprite);
     if (building) {
-        // std::cout << "Drawing Building at position (" << sprite.getPosition().x << ", " << sprite.getPosition().y << ").\n";
         building->draw(window);
     }
 }
