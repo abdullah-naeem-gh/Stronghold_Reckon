@@ -1,22 +1,23 @@
 // Tile.cpp
 #include "Tile.hpp"
-#include "Building.hpp"        // Include Building.hpp here
+#include "Building.hpp"
 #include "TextureManager.hpp"
 #include "IsometricUtils.hpp"
 #include <iostream>
 
 Tile::Tile(int row, int col, TileType type)
-    : type(type), building(nullptr), row(row), col(col) {
+    : type(type), building(nullptr), row(row), col(col), blockStatus(false) {
     updateTexture();
 }
 
 Tile::Tile(const Tile& other)
-    : type(other.type), building(nullptr) { // Initialize building after
+    : type(other.type), building(nullptr), row(other.row), col(other.col), blockStatus(other.blockStatus) {
     sprite = other.sprite; // sf::Sprite supports copy assignment
     if (other.building) {
         building = std::make_shared<Building>(*other.building); // Deep copy
         setType(TileType::Building);
-    } else {
+    }
+    else {
         setType(TileType::Grass);
     }
 }
@@ -38,6 +39,7 @@ void Tile::setBuilding(std::shared_ptr<Building> buildingPtr) {
     }
     else {
         setType(TileType::Grass);
+        blockStatus = false;
     }
 }
 
@@ -57,19 +59,20 @@ void Tile::updateTexture() {
     TextureManager& tm = TextureManager::getInstance();
     std::shared_ptr<sf::Texture> texturePtr;
     switch (type) {
-        case TileType::Grass:
-            texturePtr = tm.getTexture("../assets/tiles/grass.png");
-            break;
-        case TileType::Water:
-            texturePtr = tm.getTexture("../assets/tiles/water.png");
-            break;
-        case TileType::Road:
-            texturePtr = tm.getTexture("../assets/tiles/road.png");
-            break;
-        case TileType::Building:
-            texturePtr = tm.getTexture("../assets/tiles/building_tile.png");
-            break;
+    case TileType::Grass:
+        texturePtr = tm.getTexture("../assets/tiles/grass.png");
+        break;
+    case TileType::Water:
+        texturePtr = tm.getTexture("../assets/tiles/water.png");
+        break;
+    case TileType::Road:
+        texturePtr = tm.getTexture("../assets/tiles/road.png");
+        break;
+    case TileType::Building:
+        texturePtr = tm.getTexture("../assets/tiles/building_tile.png");
+        break;
     }
+
     if (texturePtr) {
         sprite.setTexture(*texturePtr);
         // Ensure the texture fills the tile
@@ -77,7 +80,8 @@ void Tile::updateTexture() {
             static_cast<float>(TILE_WIDTH) / static_cast<float>(texturePtr->getSize().x),
             static_cast<float>(TILE_HEIGHT) / static_cast<float>(texturePtr->getSize().y)
         );
-    } else {
+    }
+    else {
         std::cerr << "Failed to load texture for tile type." << std::endl;
     }
 }
@@ -87,15 +91,26 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (building) {
         building->draw(window);
     }
+
+    // Uncomment the following lines for debugging tile boundaries
+    /*
+    sf::RectangleShape outline(sf::Vector2f(TILE_WIDTH, TILE_HEIGHT));
+    outline.setPosition(sprite.getPosition());
+    outline.setFillColor(sf::Color::Transparent);
+    outline.setOutlineColor(sf::Color::Red);
+    outline.setOutlineThickness(1.0f);
+    window.draw(outline);
+    */
 }
 
-bool Tile::isBlocked() {
+bool Tile::isBlocked() const {
     return this->blockStatus;
 }
 
-int Tile::getRow() {
+int Tile::getRow() const {
     return row;
 }
-int Tile::getCol() {
+
+int Tile::getCol() const {
     return col;
 }

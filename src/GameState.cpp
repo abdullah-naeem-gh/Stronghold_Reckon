@@ -1,13 +1,17 @@
+// GameState.cpp
 #include "GameState.hpp"
 
 GameState::GameState(const std::vector<std::vector<std::shared_ptr<Tile>>>& tiles) {
     // Deep copy of tiles
+    this->tiles.reserve(tiles.size());
     for (const auto& row : tiles) {
         std::vector<std::shared_ptr<Tile>> newRow;
+        newRow.reserve(row.size());
         for (const auto& tile : row) {
             if (tile) {
                 newRow.emplace_back(std::make_shared<Tile>(*tile)); // Invokes Tile's copy constructor
-            } else {
+            }
+            else {
                 newRow.emplace_back(nullptr);
             }
         }

@@ -1,13 +1,10 @@
 // IsometricUtils.hpp
-#ifndef ISOMETRICUTILS_HPP
-#define ISOMETRICUTILS_HPP
+#ifndef ISOMETRIC_UTILS_HPP
+#define ISOMETRIC_UTILS_HPP
 
 #include <SFML/Graphics.hpp>
-#include <cmath>
 
-// Forward declaration to avoid circular dependency
-class Tile;
-
+// Structure to hold tile coordinates
 struct TileCoordinates {
     int row;
     int col;
@@ -15,11 +12,20 @@ struct TileCoordinates {
 
 class IsometricUtils {
 public:
-    // Convert tile indices to screen coordinates
-    static sf::Vector2f tileToScreen(int row, int col, float startX = 0.0f, float startY = 0.0f);
+    // Converts tile indices to screen coordinates based on centralized map start positions
+    static sf::Vector2f tileToScreen(int row, int col);
     
-    // Convert screen coordinates to tile indices
-    static TileCoordinates screenToTile(float x, float y, float startX = 0.0f, float startY = 0.0f);
+    // Converts screen coordinates back to tile indices, ensuring they stay within map boundaries
+    static TileCoordinates screenToTile(float x, float y, int maxRows = 64, int maxCols = 64);
+    
+    // Getters for map starting positions
+    static float getMapStartX();
+    static float getMapStartY();
+
+private:
+    // Centralized map starting positions
+    static constexpr float MAP_START_X = 400.0f;
+    static constexpr float MAP_START_Y = 50.0f;
 };
 
-#endif // ISOMETRICUTILS_HPP
+#endif // ISOMETRIC_UTILS_HPP

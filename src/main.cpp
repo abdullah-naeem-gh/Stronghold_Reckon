@@ -1,3 +1,4 @@
+// main.cpp
 #include <SFML/Graphics.hpp>
 #include "MapScreen.hpp"
 #include "IsometricUtils.hpp"
@@ -8,56 +9,47 @@ int main() {
     const int WINDOW_HEIGHT = 720;
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Stronghold Reckoning");
     window.setFramerateLimit(60);
-    
+
     // Initialize MapScreen with 64 rows x 64 columns
-    MapScreen mapScreen(64, 64, window.getSize());
-    
-    // Initialize camera view
-    sf::View cameraView(sf::FloatRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT));
-    sf::Vector2f centerPosition = IsometricUtils::tileToScreen(mapScreen.getMapEntity().getRows() / 2,
-                                                               mapScreen.getMapEntity().getCols() / 2,
-                                                               0,
-                                                               0);
-    cameraView.setCenter(centerPosition);
-    
+    MapScreen mapScreen(30, 30, window.getSize());
+
     sf::Clock deltaClock;
-    
     while (window.isOpen()) {
         sf::Time deltaTime = deltaClock.restart();
         float deltaSeconds = deltaTime.asSeconds(); // Convert sf::Time to float
-
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 std::cout << "closed event? " << std::endl;
                 window.close();
-            } else if (event.type == sf::Event::KeyPressed) {
+            }
+            else if (event.type == sf::Event::KeyPressed) {
                 switch (event.key.code) {
-                    case sf::Keyboard::O:
-                        mapScreen.saveMap("savemap.txt");
-                        break;
-                    case sf::Keyboard::L:
-                        mapScreen.loadMap("savemap.txt");
-                        break;
-                    case sf::Keyboard::Z:
-                        mapScreen.getMapEntity().undo(); // Handle undo
-                        break;
-                    case sf::Keyboard::Y:
-                        mapScreen.getMapEntity().redo(); // Handle redo
-                        break;
-                    default:
-                        break;
+                case sf::Keyboard::O:
+                    mapScreen.saveMap("savemap.txt");
+                    break;
+                case sf::Keyboard::L:
+                    mapScreen.loadMap("savemap.txt");
+                    break;
+                case sf::Keyboard::Z:
+                    mapScreen.getMapEntity().undo(); // Handle undo
+                    break;
+                case sf::Keyboard::Y:
+                    mapScreen.getMapEntity().redo(); // Handle redo
+                    break;
+                default:
+                    break;
                 }
             }
             // Delegate handling to MapScreen
             mapScreen.handleEvents(event, window);
         }
+
         // Update camera position
         mapScreen.moveCamera(deltaTime);
-        
+
         // Rendering
         window.clear(sf::Color::Black);
-        window.setView(cameraView);
         mapScreen.draw(window, deltaSeconds);
         window.display();
     }

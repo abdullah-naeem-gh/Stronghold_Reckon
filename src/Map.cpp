@@ -13,7 +13,7 @@ void Map::initializeTiles() {
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
             tiles[row][col] = std::make_shared<Tile>(row, col);
-            sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col, START_X, START_Y);
+            sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
             tiles[row][col]->setPosition(isoPos.x, isoPos.y);
         }
     }
@@ -35,16 +35,16 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
         std::cerr << "Tile already has a building.\n";
         return false;
     }
-    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col, START_X, START_Y);
-    sf::Vector2f buildingPosition = sf::Vector2f(
-        isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X of the tile
-        isoPos.y + Tile::TILE_HEIGHT        // Bottom Y of the tile
-    );
 
+    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
+    sf::Vector2f buildingPosition = sf::Vector2f(
+           isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X of the tile
+           isoPos.y + Tile::TILE_HEIGHT - (Building::BUILDING_HEIGHT / 2.0f) // Adjusted Y
+       );
+    
     // Create the building
     auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
     tile->setBuilding(building);
-
     std::cout << "Building placed at tile: (" << row << ", " << col << ").\n";
     saveState();
     return true;
@@ -72,6 +72,7 @@ void Map::saveToFile(const std::string& filename) {
         std::cerr << "Error opening file for writing.\n";
         return;
     }
+
     outFile << rows << " " << cols << "\n";
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
@@ -80,7 +81,8 @@ void Map::saveToFile(const std::string& filename) {
             auto building = tile->getBuilding();
             if (building) {
                 outFile << building->getId() << " " << building->getTexturePath() << "\n";
-            } else {
+            }
+            else {
                 outFile << "-1 -\n";
             }
         }
@@ -94,6 +96,7 @@ void Map::loadFromFile(const std::string& filename) {
         std::cerr << "Error opening file for reading.\n";
         return;
     }
+
     inFile >> rows >> cols;
     tiles.clear();
     initializeTiles();
@@ -105,10 +108,10 @@ void Map::loadFromFile(const std::string& filename) {
             auto tile = getTile(row, col);
             tile->setType(static_cast<TileType>(tileType));
             if (buildingId != -1) {
-                sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col, START_X, START_Y);
+                sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
                 sf::Vector2f buildingPosition = sf::Vector2f(
                     isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X
-                    isoPos.y + Tile::TILE_HEIGHT        // Bottom Y
+                    isoPos.y + Tile::TILE_HEIGHT       // Bottom Y
                 );
                 auto building = std::make_shared<Building>(buildingId, buildingPosition.x, buildingPosition.y, texturePath);
                 tile->setBuilding(building);
@@ -143,7 +146,7 @@ void Map::undo() {
         undoStack.pop();
         restoreGameState(previousState);
         std::cout << "Undo performed. Undo stack size: " << undoStack.size()
-                  << ", Redo stack size: " << redoStack.size() << std::endl;
+            << ", Redo stack size: " << redoStack.size() << std::endl;
     }
     else {
         std::cout << "Undo stack is empty, cannot perform undo." << std::endl;
@@ -159,7 +162,7 @@ void Map::redo() {
         redoStack.pop();
         restoreGameState(nextState);
         std::cout << "Redo performed. Undo stack size: " << undoStack.size()
-                  << ", Redo stack size: " << redoStack.size() << std::endl;
+            << ", Redo stack size: " << redoStack.size() << std::endl;
     }
     else {
         std::cout << "Redo stack is empty, cannot perform redo." << std::endl;
@@ -168,7 +171,6 @@ void Map::redo() {
 
 void Map::restoreGameState(const GameState& state) {
     tiles = state.getTiles();
-
     // Re-position buildings based on their associated tiles
     for (const auto& row : tiles) {
         for (const auto& tile : row) {
@@ -177,10 +179,9 @@ void Map::restoreGameState(const GameState& state) {
                 sf::Vector2f tilePos = tile->getPosition();
                 sf::Vector2f buildingPosition = sf::Vector2f(
                     tilePos.x + Tile::TILE_WIDTH / 2.0f, // Center X
-                    tilePos.y + Tile::TILE_HEIGHT        // Bottom Y
+                    tilePos.y + Tile::TILE_HEIGHT       // Bottom Y
                 );
                 tile->getBuilding()->setPosition(buildingPosition.x, buildingPosition.y);
-
                 // Update nextBuildingId if necessary
                 if (tile->getBuilding()->getId() >= nextBuildingId) {
                     nextBuildingId = tile->getBuilding()->getId() + 1;
@@ -197,7 +198,6 @@ void Map::restoreGameState(const GameState& state) {
             }
         }
     }
-
     std::cout << "GameState restored. Undo stack size: " << undoStack.size() << std::endl;
 }
 
@@ -205,23 +205,20 @@ std::vector<std::vector<std::shared_ptr<Tile>>> Map::getTiles() {
     return tiles;
 }
 
-std::vector<std::shared_ptr<Tile>> Map::getNeighbors(std::shared_ptr<Tile>& tile) const{
+std::vector<std::shared_ptr<Tile>> Map::getNeighbors(std::shared_ptr<Tile>& tile) const {
     std::cout << "get neigh\n";
     std::vector<std::shared_ptr<Tile>> neighbors;
-    
     int row = tile->getRow();
     int col = tile->getCol();
     std::cout << "Tile coord: (" << tile->getPosition().x << ", " << tile->getPosition().y << ")\n";
     std::cout << "Tile Position: (" << row << ", " << col << ")\n";
-
-    if (row > 0 && !this->tiles[row - 1][col]->isBlocked()) 
+    if (row > 0 && !this->tiles[row - 1][col]->isBlocked())
         neighbors.push_back(this->tiles[row - 1][col]); // Up
-    if (row < tiles.size() - 1 && !tiles[row + 1][col]->isBlocked()) 
+    if (row < tiles.size() - 1 && !tiles[row + 1][col]->isBlocked())
         neighbors.push_back(tiles[row + 1][col]); // Down
-    if (col > 0 && !tiles[row][col - 1]->isBlocked()) 
+    if (col > 0 && !tiles[row][col - 1]->isBlocked())
         neighbors.push_back(tiles[row][col - 1]); // Left
-    if (col < tiles[row].size() - 1 && !tiles[row][col + 1]->isBlocked()) 
+    if (col < tiles[row].size() - 1 && !tiles[row][col + 1]->isBlocked())
         neighbors.push_back(tiles[row][col + 1]); // Right
-
     return neighbors;
 }

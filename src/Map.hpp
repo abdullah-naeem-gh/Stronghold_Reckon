@@ -2,7 +2,7 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
-#include "Building.hpp" // Include Building.hpp first
+#include "Building.hpp"     // Include Building.hpp first
 #include "Tile.hpp"
 #include "GameState.hpp"
 #include <vector>
@@ -24,9 +24,9 @@ public:
     int getCols() const;
     void saveToFile(const std::string &filename);
     void loadFromFile(const std::string &filename);
-
     std::vector<std::vector<std::shared_ptr<Tile>>> getTiles();
     std::vector<std::shared_ptr<Tile>> getNeighbors(std::shared_ptr<Tile>& tile) const;
+
     // Undo/Redo functionality
     void saveState();
     void undo();
@@ -39,8 +39,6 @@ private:
     std::stack<GameState> undoStack;
     std::stack<GameState> redoStack;
     int nextBuildingId;
-    const int START_X = 400;
-    const int START_Y = 50;
 
     void restoreGameState(const GameState& state);
 };

@@ -8,13 +8,13 @@ Building::Building(int id, float x, float y, const std::string& texturePath)
     auto texture = TextureManager::getInstance().getTexture(texturePath);
     if (!texture) {
         std::cerr << "Building texture not loaded: " << texturePath << std::endl;
-    } else {
+    }
+    else {
         sprite.setTexture(*texture);
         // Set origin to the bottom center
-        sprite.setOrigin(texture->getSize().x / 2.0f, texture->getSize().y);
+        sprite.setOrigin(static_cast<float>(texture->getSize().x) / 2.0f, static_cast<float>(texture->getSize().y));
         // Align building position with the tile center
         sprite.setPosition(x, y);
-
         // Ensure no excessive scaling is applied initially
         sprite.setScale(1.0f, 1.0f);
     }

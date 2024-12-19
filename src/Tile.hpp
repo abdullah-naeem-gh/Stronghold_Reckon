@@ -1,3 +1,4 @@
+// Tile.hpp
 #ifndef TILE_HPP
 #define TILE_HPP
 
@@ -25,17 +26,22 @@ public:
 
     void setType(TileType type);
     TileType getType() const;
+
     void setBuilding(std::shared_ptr<Building> buildingPtr);
     std::shared_ptr<Building> getBuilding() const;
+
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
+
     void draw(sf::RenderWindow& window) const;
     void updateTexture();
 
-    int getRow();
-    int getCol();
-    bool isBlocked();
+    int getRow() const;
+    int getCol() const;
 
+    bool isBlocked() const;
+
+    // Public members for direct access (optional)
     int row;
     int col;
 
