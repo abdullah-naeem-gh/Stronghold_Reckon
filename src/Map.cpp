@@ -200,3 +200,28 @@ void Map::restoreGameState(const GameState& state) {
 
     std::cout << "GameState restored. Undo stack size: " << undoStack.size() << std::endl;
 }
+
+std::vector<std::vector<std::shared_ptr<Tile>>> Map::getTiles() {
+    return tiles;
+}
+
+std::vector<std::shared_ptr<Tile>> Map::getNeighbors(std::shared_ptr<Tile>& tile) const{
+    std::cout << "get neigh\n";
+    std::vector<std::shared_ptr<Tile>> neighbors;
+    
+    int row = tile->getRow();
+    int col = tile->getCol();
+    std::cout << "Tile coord: (" << tile->getPosition().x << ", " << tile->getPosition().y << ")\n";
+    std::cout << "Tile Position: (" << row << ", " << col << ")\n";
+
+    if (row > 0 && !this->tiles[row - 1][col]->isBlocked()) 
+        neighbors.push_back(this->tiles[row - 1][col]); // Up
+    if (row < tiles.size() - 1 && !tiles[row + 1][col]->isBlocked()) 
+        neighbors.push_back(tiles[row + 1][col]); // Down
+    if (col > 0 && !tiles[row][col - 1]->isBlocked()) 
+        neighbors.push_back(tiles[row][col - 1]); // Left
+    if (col < tiles[row].size() - 1 && !tiles[row][col + 1]->isBlocked()) 
+        neighbors.push_back(tiles[row][col + 1]); // Right
+
+    return neighbors;
+}

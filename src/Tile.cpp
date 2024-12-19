@@ -1,3 +1,4 @@
+// Tile.cpp
 #include "Tile.hpp"
 #include "Building.hpp"        // Include Building.hpp here
 #include "TextureManager.hpp"
@@ -5,7 +6,7 @@
 #include <iostream>
 
 Tile::Tile(int row, int col, TileType type)
-    : type(type), building(nullptr) {
+    : type(type), building(nullptr), row(row), col(col) {
     updateTexture();
 }
 
@@ -33,6 +34,7 @@ void Tile::setBuilding(std::shared_ptr<Building> buildingPtr) {
     building = buildingPtr;
     if (buildingPtr) {
         setType(TileType::Building);
+        blockStatus = true;
     }
     else {
         setType(TileType::Grass);
@@ -85,4 +87,15 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (building) {
         building->draw(window);
     }
+}
+
+bool Tile::isBlocked() {
+    return this->blockStatus;
+}
+
+int Tile::getRow() {
+    return row;
+}
+int Tile::getCol() {
+    return col;
 }

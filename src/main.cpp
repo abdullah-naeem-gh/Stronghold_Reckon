@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "MapScreen.hpp"
 #include "IsometricUtils.hpp"
+#include <iostream>
 
 int main() {
     const int WINDOW_WIDTH = 1280;
@@ -23,9 +24,12 @@ int main() {
     
     while (window.isOpen()) {
         sf::Time deltaTime = deltaClock.restart();
+        float deltaSeconds = deltaTime.asSeconds(); // Convert sf::Time to float
+
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
+                std::cout << "closed event? " << std::endl;
                 window.close();
             } else if (event.type == sf::Event::KeyPressed) {
                 switch (event.key.code) {
@@ -54,7 +58,7 @@ int main() {
         // Rendering
         window.clear(sf::Color::Black);
         window.setView(cameraView);
-        mapScreen.draw(window);
+        mapScreen.draw(window, deltaSeconds);
         window.display();
     }
     return 0;

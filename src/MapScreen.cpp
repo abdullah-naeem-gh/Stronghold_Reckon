@@ -3,7 +3,7 @@
 #include "IsometricUtils.hpp"
 
 MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
-    : mapEntity(rows, cols), uiManager(windowSize), tankSpawn() {
+    :  uiManager(windowSize) , mapEntity(rows, cols), tankSpawn(mapEntity){
     cameraView.setSize(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
     // Calculate correct center by properly averaging the map size
     sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2 , cols / 2, START_X, START_Y);
@@ -11,10 +11,12 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
     uiManager.loadUI([this](const std::string& buildingTexture) {
         setSelectedBuildingType(buildingTexture);
     });
+    
     std::cout << "MapScreen initialized successfully." << std::endl;
 }
 
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
+    // std::cout << "handling map events\n";
     uiManager.handleEvent(event);
     // Handle tank spawning within MapScreen
     tankSpawn.handleEvent(event, mapEntity);
@@ -29,10 +31,10 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     }
 }
 
-void MapScreen::draw(sf::RenderWindow& window) {
+void MapScreen::draw(sf::RenderWindow& window, float deltaTime) {
     window.setView(cameraView);
     mapEntity.draw(window);
-    tankSpawn.draw(window); // Draw tanks within camera view
+    tankSpawn.draw(window, deltaTime); // Draw tanks within camera view
     window.setView(window.getDefaultView());
     uiManager.draw(window);
 }
