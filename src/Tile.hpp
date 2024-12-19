@@ -32,10 +32,18 @@ public:
     void draw(sf::RenderWindow& window) const;
     void updateTexture();
 
+    int getRow();
+    int getCol();
+    bool isBlocked();
+
+    int row;
+    int col;
+
 private:
     TileType type;
     sf::Sprite sprite;
     std::shared_ptr<Building> building;
+    bool blockStatus;
 };
 
 #endif // TILE_HPP

@@ -10,7 +10,7 @@ class MapScreen {
 public:
     MapScreen(int rows, int cols, const sf::Vector2u& windowSize);
     void handleEvents(const sf::Event& event, sf::RenderWindow& window);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, float deltaTime);
     void setSelectedBuildingType(const std::string& buildingTexture);
     void moveCamera(const sf::Time& deltaTime);
     void saveMap(const std::string &filename);

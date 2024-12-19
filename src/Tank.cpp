@@ -1,9 +1,10 @@
 #include "Tank.hpp"
 #include "TextureManager.hpp"
 #include <iostream>
+#include <cmath>
 
-Tank::Tank(float x, float y, const std::string& texturePath)
- : texturePath(texturePath) {
+Tank::Tank(float x, float y, const std::string& texturePath, std::vector<std::shared_ptr<Tile>> path)
+ : texturePath(texturePath), path(path) {
     auto texture = TextureManager::getInstance().getTexture(texturePath);
     if (!texture) {
         std::cerr << "Tank texture not loaded: " << texturePath << std::endl;
@@ -29,3 +30,26 @@ sf::Vector2f Tank::getPosition() const {
 void Tank::draw(sf::RenderWindow& window) const {
     window.draw(sprite);
 }
+
+
+
+/// IMPLEMENT THE MOTION OF TANK ACCORDING TO THE PATH TO BE FOLLOWED
+
+
+void Tank::move(float deltaTime) {
+    if (!path.empty() && currentPathIndex < path.size()) {        
+        sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
+        // std::cout << "Moving tank to: { " << targetPos.x << ", " << targetPos.y << " }\n";
+        sf::Vector2f direction = targetPos - sprite.getPosition();
+        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+        if (distance > 1.0f) {
+            // Normalize direction and move tank
+            direction /= distance;
+            sprite.move(direction * speed * deltaTime);
+        } else {
+            currentPathIndex++; // Move to the next tile in the path
+        }
+    }
+}
+
