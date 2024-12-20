@@ -60,7 +60,7 @@ void Tile::updateTexture() {
     std::shared_ptr<sf::Texture> texturePtr;
     switch (type) {
     case TileType::Grass:
-        texturePtr = tm.getTexture("../assets/tiles/grass.png");
+        texturePtr = tm.getTexture("../assets/tiles/default.png");
         break;
     case TileType::Water:
         texturePtr = tm.getTexture("../assets/tiles/water.png");
@@ -69,7 +69,7 @@ void Tile::updateTexture() {
         texturePtr = tm.getTexture("../assets/tiles/road.png");
         break;
     case TileType::Building:
-        texturePtr = tm.getTexture("../assets/tiles/building_tile.png");
+        texturePtr = tm.getTexture("../assets/tiles/default.png");
         break;
     }
 

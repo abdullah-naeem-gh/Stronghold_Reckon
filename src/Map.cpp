@@ -26,29 +26,27 @@ std::shared_ptr<Tile> Map::getTile(int row, int col) const {
 }
 
 bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
-    auto tile = getTile(row, col);
-    if (!tile) {
-        std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
-        return false;
-    }
-    if (tile->getBuilding() != nullptr) {
-        std::cerr << "Tile already has a building.\n";
-        return false;
-    }
-
-    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
-    sf::Vector2f buildingPosition = sf::Vector2f(
+       auto tile = getTile(row, col);
+       if (!tile) {
+           std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
+           return false;
+       }
+       // Remove check for building tile condition if this is enforced.
+       if (tile->getBuilding() != nullptr) {
+           std::cerr << "Tile already has a building.\n";
+           return false;
+       }
+       sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
+       sf::Vector2f buildingPosition = sf::Vector2f(
            isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X of the tile
            isoPos.y + Tile::TILE_HEIGHT - (Building::BUILDING_HEIGHT / 2.0f) // Adjusted Y
        );
-    
-    // Create the building
-    auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
-    tile->setBuilding(building);
-    std::cout << "Building placed at tile: (" << row << ", " << col << ").\n";
-    saveState();
-    return true;
-}
+       auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
+       tile->setBuilding(building);
+       std::cout << "Building placed at tile: (" << row << ", " << col << ").\n";
+       saveState();
+       return true;
+   }
 
 void Map::draw(sf::RenderWindow& window) const {
     for (const auto& row : tiles) {
