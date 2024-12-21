@@ -19,35 +19,34 @@ UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(100.0f) { /
     }
 }
 
-void UIManager::loadUI(const std::function<void(const std::string&)>& buildingSelectCallback) {
+void UIManager::loadUI(const std::function<void(const std::string&, TileType)>& buildingSelectCallback) {
     // Example: Add Building Type 1 Button
-    // Pass the building texture path as a parameter to the callback
     auto callback1 = [=]() {
-        buildingSelectCallback("../assets/buildings/building1.png");
+        buildingSelectCallback("../assets/buildings/building1.png", TileType::Building);
     };
     addButton("../assets/ui/button_building1.png", callback1);
 
     // Add Building Type 2 Button
     auto callback2 = [=]() {
-        buildingSelectCallback("../assets/buildings/building2.png");
+        buildingSelectCallback("../assets/buildings/building2.png", TileType::Building);
     };
     addButton("../assets/ui/button_building2.png", callback2);
 
     // Add Wall Button
     auto wallCallback = [=]() {
-        buildingSelectCallback("../assets/walls/brick_wall.png");
+        buildingSelectCallback("../assets/walls/brick_wall.png", TileType::Wall);
     };
     addButton("../assets/ui/button_wall.png", wallCallback);
 
     // Add Town Hall Button
     auto townHallCallback = [=]() {
-        buildingSelectCallback("../assets/buildings/townhall.png");
+        buildingSelectCallback("../assets/buildings/townhall.png", TileType::Building);
     };
     addButton("../assets/ui/button_townhall.png", townHallCallback);
 
     // Add Town Hall Button
     auto tower1Callback = [=]() {
-        buildingSelectCallback("../assets/buildings/tower1.png");
+        buildingSelectCallback("../assets/buildings/tower1.png", TileType::Building);
     };
     addButton("../assets/ui/button_tower1.png", tower1Callback);
     // Add more buttons as needed

@@ -4,14 +4,15 @@
 #include "TextureManager.hpp"
 #include "IsometricUtils.hpp"
 #include <iostream>
+#include <random>
 
 Tile::Tile(int row, int col, TileType type)
-    : type(type), building(nullptr), row(row), col(col), blockStatus(false) {
+    :   type(type), row(row), col(col), blockStatus(false), building(nullptr) {
     updateTexture();
 }
 
 Tile::Tile(const Tile& other)
-    : type(other.type), building(nullptr), row(other.row), col(other.col), blockStatus(other.blockStatus) {
+    : type(other.type), row(other.row), col(other.col), blockStatus(other.blockStatus), building(nullptr) {
     sprite = other.sprite; // sf::Sprite supports copy assignment
     if (other.building) {
         building = std::make_shared<Building>(*other.building); // Deep copy
@@ -58,19 +59,35 @@ sf::Vector2f Tile::getPosition() const {
 void Tile::updateTexture() {
     TextureManager& tm = TextureManager::getInstance();
     std::shared_ptr<sf::Texture> texturePtr;
+
     switch (type) {
     case TileType::Grass:
-        texturePtr = tm.getTexture("../assets/tiles/default.png");
+        {
+            // Randomly choose one of the grass textures
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(1, 4);
+            int grassType = dis(gen);
+            
+            // Construct the path based on the selected grass type
+            std::string texturePath = "../assets/tiles/grass" + std::to_string(grassType) + ".png";
+            texturePtr = tm.getTexture(texturePath);
+        }
         break;
+
     case TileType::Water:
         texturePtr = tm.getTexture("../assets/tiles/water.png");
         break;
+
     case TileType::Road:
         texturePtr = tm.getTexture("../assets/tiles/road.png");
         break;
+
     case TileType::Building:
         texturePtr = tm.getTexture("../assets/tiles/default.png");
         break;
+
+    // Add more cases if there are additional types like Wall
     }
 
     if (texturePtr) {
@@ -81,9 +98,6 @@ void Tile::updateTexture() {
             static_cast<float>(TILE_HEIGHT) / static_cast<float>(texturePtr->getSize().y)
         );
     }
-    else {
-        std::cerr << "Failed to load texture for tile type." << std::endl;
-    }
 }
 
 void Tile::draw(sf::RenderWindow& window) const {
@@ -91,20 +105,15 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (building) {
         building->draw(window);
     }
-
-    // Uncomment the following lines for debugging tile boundaries
-    /*
-    sf::RectangleShape outline(sf::Vector2f(TILE_WIDTH, TILE_HEIGHT));
-    outline.setPosition(sprite.getPosition());
-    outline.setFillColor(sf::Color::Transparent);
-    outline.setOutlineColor(sf::Color::Red);
-    outline.setOutlineThickness(1.0f);
-    window.draw(outline);
-    */
 }
 
 bool Tile::isBlocked() const {
-    return this->blockStatus;
+    return blockStatus;
+}
+
+bool Tile::isWall() const {
+    // std::cout << "Tile type: " << this->getType() << "\n";
+    return type == TileType::Wall; // Assuming TileType::Wall exists
 }
 
 int Tile::getRow() const {
@@ -113,4 +122,27 @@ int Tile::getRow() const {
 
 int Tile::getCol() const {
     return col;
+}
+
+void Tile::addEdge(std::shared_ptr<Tile> neighbor) {
+    neighbors.push_back(neighbor);
+}
+
+const std::vector<std::shared_ptr<Tile>>& Tile::getNeighbors() const {
+    return neighbors;
+}
+
+std::shared_ptr<Tile> Tile::getNeighbor(int dx, int dy) const {
+    for (const auto& neighbor : neighbors) {
+        if (neighbor->getRow() == row + dx && neighbor->getCol() == col + dy) {
+            return neighbor;
+        }
+    }
+    return nullptr;
+}
+
+void Tile::takeDamage(int damage) {
+    // Implement logic to handle taking damage
+    // This is a placeholder implementation
+    std::cout << "Tile at (" << row << ", " << col << ") took " << damage << " damage." << std::endl;
 }

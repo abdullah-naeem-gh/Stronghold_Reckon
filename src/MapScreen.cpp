@@ -12,7 +12,7 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
     // Calculate correct center by properly averaging the map size
     sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2, cols / 2);
     cameraView.setCenter(centerPosition);
-    uiManager.loadUI([this](const std::string& buildingTexture) {
+    uiManager.loadUI([this](const std::string& buildingTexture, TileType tileType) {
         setSelectedBuildingType(buildingTexture);
     });
     std::cout << "MapScreen initialized successfully." << std::endl;
@@ -20,16 +20,14 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
 
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     uiManager.handleEvent(event);
-    // Handle tank spawning within MapScreen
     tankSpawn.handleEvent(event, mapEntity);
 
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-        // Ensure mouse position conversion accounts for the camera view
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), cameraView);
         TileCoordinates tileCoords = IsometricUtils::screenToTile(mousePos.x, mousePos.y, mapEntity.getRows(), mapEntity.getCols());
         auto tile = mapEntity.getTile(tileCoords.row, tileCoords.col);
         if (tile && !selectedBuildingTexture.empty() && !tile->getBuilding()) {
-            mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
+            mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture, selectedTileType);
         }
     }
 }
@@ -115,3 +113,5 @@ void MapScreen::loadMap(const std::string& filename) {
 Map& MapScreen::getMapEntity() {
     return mapEntity;
 }
+
+void loadUI(const std::function<void(const std::string&, TileType)>& buildingSelectCallback);

@@ -18,7 +18,7 @@ public:
     Map(int rows, int cols);
     void initializeTiles();
     std::shared_ptr<Tile> getTile(int row, int col) const;
-    bool addBuilding(int row, int col, const std::string& buildingTexture);
+    // bool addBuilding(int row, int col, const std::string& buildingTexture);
     void draw(sf::RenderWindow& window) const;
     int getRows() const;
     int getCols() const;
@@ -26,11 +26,15 @@ public:
     void loadFromFile(const std::string &filename);
     std::vector<std::vector<std::shared_ptr<Tile>>> getTiles();
     std::vector<std::shared_ptr<Tile>> getNeighbors(std::shared_ptr<Tile>& tile) const;
+    bool addBuilding(int row, int col, const std::string& buildingTexture, TileType type);
+
 
     // Undo/Redo functionality
     void saveState();
     void undo();
     void redo();
+
+    bool addWall(int row, int col);
 
 private:
     int rows;

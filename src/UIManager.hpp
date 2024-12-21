@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include "Tile.hpp"
 
 struct UIButton {
     sf::Sprite sprite;
@@ -17,7 +18,7 @@ public:
     UIManager(const sf::Vector2u& windowSize);
 
     // Load UI elements with a callback for building selection
-    void loadUI(const std::function<void(const std::string&)>& buildingSelectCallback);
+    void loadUI(const std::function<void(const std::string&, TileType)>& buildingSelectCallback);
 
     // Process events related to UI
     void handleEvent(const sf::Event& event); // **Removed sf::RenderWindow& window**

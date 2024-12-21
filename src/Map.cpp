@@ -17,6 +17,25 @@ void Map::initializeTiles() {
             tiles[row][col]->setPosition(isoPos.x, isoPos.y);
         }
     }
+
+    // Add edges between neighboring tiles
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            auto tile = tiles[row][col];
+            if (row > 0) {
+                tile->addEdge(tiles[row - 1][col]); // Up
+                if (col > 0) tile->addEdge(tiles[row - 1][col - 1]); // Up-Left
+                if (col < cols - 1) tile->addEdge(tiles[row - 1][col + 1]); // Up-Right
+            }
+            if (row < rows - 1) {
+                tile->addEdge(tiles[row + 1][col]); // Down
+                if (col > 0) tile->addEdge(tiles[row + 1][col - 1]); // Down-Left
+                if (col < cols - 1) tile->addEdge(tiles[row + 1][col + 1]); // Down-Right
+            }
+            if (col > 0) tile->addEdge(tiles[row][col - 1]); // Left
+            if (col < cols - 1) tile->addEdge(tiles[row][col + 1]); // Right
+        }
+    }
 }
 
 std::shared_ptr<Tile> Map::getTile(int row, int col) const {
@@ -25,28 +44,42 @@ std::shared_ptr<Tile> Map::getTile(int row, int col) const {
     return tiles[row][col];
 }
 
-bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
-       auto tile = getTile(row, col);
-       if (!tile) {
-           std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
-           return false;
-       }
-       // Remove check for building tile condition if this is enforced.
-       if (tile->getBuilding() != nullptr) {
-           std::cerr << "Tile already has a building.\n";
-           return false;
-       }
-       sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
-       sf::Vector2f buildingPosition = sf::Vector2f(
-           isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X of the tile
-           isoPos.y + Tile::TILE_HEIGHT - (Building::BUILDING_HEIGHT / 2.0f) // Adjusted Y
-       );
-       auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
-       tile->setBuilding(building);
-       std::cout << "Building placed at tile: (" << row << ", " << col << ").\n";
-       saveState();
-       return true;
-   }
+bool Map::addBuilding(int row, int col, const std::string& buildingTexture, TileType type) {
+    auto tile = getTile(row, col);
+    if (!tile) {
+        std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
+        return false;
+    }
+    if (tile->getBuilding() != nullptr) {
+        std::cerr << "Tile already has a building.\n";
+        return false;
+    }
+    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
+    sf::Vector2f buildingPosition = sf::Vector2f(
+        isoPos.x + Tile::TILE_WIDTH / 2.0f,
+        isoPos.y + Tile::TILE_HEIGHT - (Building::BUILDING_HEIGHT / 2.0f)
+    );
+    auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
+    tile->setBuilding(building);
+    tile->setType(type); // Set the tile type to the provided type
+    saveState();
+    return true;
+}
+
+bool Map::addWall(int row, int col) {
+    auto tile = getTile(row, col);
+    if (!tile) {
+        std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
+        return false;
+    }
+    if (tile->getBuilding() != nullptr) {
+        std::cerr << "Tile already has a building.\n";
+        return false;
+    }
+    tile->setType(TileType::Wall); // Set the tile type to Wall
+    saveState();
+    return true;
+}
 
 void Map::draw(sf::RenderWindow& window) const {
     for (const auto& row : tiles) {
@@ -79,8 +112,7 @@ void Map::saveToFile(const std::string& filename) {
             auto building = tile->getBuilding();
             if (building) {
                 outFile << building->getId() << " " << building->getTexturePath() << "\n";
-            }
-            else {
+            } else {
                 outFile << "-1 -\n";
             }
         }
@@ -108,95 +140,62 @@ void Map::loadFromFile(const std::string& filename) {
             if (buildingId != -1) {
                 sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
                 sf::Vector2f buildingPosition = sf::Vector2f(
-                    isoPos.x + Tile::TILE_WIDTH / 2.0f, // Center X
-                    isoPos.y + Tile::TILE_HEIGHT       // Bottom Y
+                    isoPos.x + Tile::TILE_WIDTH / 2.0f,
+                    isoPos.y + Tile::TILE_HEIGHT
                 );
                 auto building = std::make_shared<Building>(buildingId, buildingPosition.x, buildingPosition.y, texturePath);
                 tile->setBuilding(building);
-            }
-            else {
+            } else {
                 tile->setBuilding(nullptr);
             }
         }
     }
     inFile.close();
-
-    // Save the state of the just-loaded map
     saveState();
-    std::cout << "Map loaded and state saved. Undo stack size: " << undoStack.size() << std::endl;
 }
 
 void Map::saveState() {
-    // Create a new GameState object representing the current state of tiles
     undoStack.push(GameState(tiles));
     while (!redoStack.empty()) {
-        redoStack.pop(); // Clear redo stack as forward actions are invalidated by new state creation
+        redoStack.pop();
     }
-    std::cout << "State saved. Undo stack size: " << undoStack.size() << std::endl;
 }
 
 void Map::undo() {
     if (!undoStack.empty()) {
-        // Save current state to redo stack
         redoStack.push(GameState(tiles));
-        // Restore the last state
         GameState previousState = undoStack.top();
         undoStack.pop();
         restoreGameState(previousState);
-        std::cout << "Undo performed. Undo stack size: " << undoStack.size()
-            << ", Redo stack size: " << redoStack.size() << std::endl;
-    }
-    else {
-        std::cout << "Undo stack is empty, cannot perform undo." << std::endl;
     }
 }
 
 void Map::redo() {
     if (!redoStack.empty()) {
-        // Save current state to undo stack
         undoStack.push(GameState(tiles));
-        // Restore the next state
         GameState nextState = redoStack.top();
         redoStack.pop();
         restoreGameState(nextState);
-        std::cout << "Redo performed. Undo stack size: " << undoStack.size()
-            << ", Redo stack size: " << redoStack.size() << std::endl;
-    }
-    else {
-        std::cout << "Redo stack is empty, cannot perform redo." << std::endl;
     }
 }
 
 void Map::restoreGameState(const GameState& state) {
     tiles = state.getTiles();
-    // Re-position buildings based on their associated tiles
     for (const auto& row : tiles) {
         for (const auto& tile : row) {
             if (tile->getType() == TileType::Building && tile->getBuilding()) {
-                // Obtain tile position
                 sf::Vector2f tilePos = tile->getPosition();
                 sf::Vector2f buildingPosition = sf::Vector2f(
-                    tilePos.x + Tile::TILE_WIDTH / 2.0f, // Center X
-                    tilePos.y + Tile::TILE_HEIGHT       // Bottom Y
+                    tilePos.x + Tile::TILE_WIDTH / 2.0f,
+                    tilePos.y + Tile::TILE_HEIGHT
                 );
                 tile->getBuilding()->setPosition(buildingPosition.x, buildingPosition.y);
-                // Update nextBuildingId if necessary
                 if (tile->getBuilding()->getId() >= nextBuildingId) {
                     nextBuildingId = tile->getBuilding()->getId() + 1;
                 }
             }
         }
     }
-
-    // Refresh all tiles' textures based on current tile types and associations
-    for (const auto& row : tiles) {
-        for (const auto& tile : row) {
-            if (tile) {
-                tile->updateTexture();
-            }
-        }
-    }
-    std::cout << "GameState restored. Undo stack size: " << undoStack.size() << std::endl;
 }
 
 std::vector<std::vector<std::shared_ptr<Tile>>> Map::getTiles() {

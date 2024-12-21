@@ -3,17 +3,17 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
+#include <vector>
+#include <memory>
+#include <map>
 #include "Tile.hpp"
 
 class Tank {
 public:
-    Tank(float x, float y, const std::string& texturePath, std::vector<std::shared_ptr<Tile>> path);
+    Tank(float x, float y, const std::vector<std::shared_ptr<Tile>>& path);
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
     void draw(sf::RenderWindow& window) const;
-
-    std::vector<std::shared_ptr<Tile>> path;
-
     void move(float deltaTime);
 
     static const int TANK_WIDTH = 64;
@@ -21,11 +21,14 @@ public:
 
 private:
     sf::Sprite sprite;
-    std::string texturePath;
-
-    size_t currentPathIndex = 0;
+    std::vector<std::shared_ptr<Tile>> path;
+    size_t currentPathIndex;
     const float speed = 100.0f; // Speed of the tank
 
+    std::map<std::string, std::shared_ptr<sf::Texture>> directionTextures;
+
+    void setDirection(float dx, float dy);
+    void loadTextures();
 };
 
 #endif // TANK_HPP

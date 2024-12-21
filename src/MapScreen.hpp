@@ -40,6 +40,8 @@ private:
     float cameraSpeed = 300.0f; // Speed at which the camera moves
 
     TankSpawn tankSpawn; // Handles tank spawning mechanics
+    // std::string selectedBuildingTexture;
+    TileType selectedTileType;
 };
 
 #endif // MAPSCREEN_HPP
