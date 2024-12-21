@@ -20,7 +20,7 @@ Building::Building(int id, float x, float y, const std::string& texturePath)
     }
 }
 
-// Copy constructor for deep copying
+// Implement the Copy Constructor
 Building::Building(const Building& other)
     : id(other.id), texturePath(other.texturePath) {
     auto texture = TextureManager::getInstance().getTexture(texturePath);

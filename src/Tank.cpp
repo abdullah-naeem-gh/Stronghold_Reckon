@@ -1,3 +1,4 @@
+// Tank.cpp
 #include "Tank.hpp"
 #include "TextureManager.hpp"
 #include <iostream>
@@ -6,15 +7,15 @@
 Tank::Tank(float x, float y, const std::vector<std::shared_ptr<Tile>>& path)
     : path(path), currentPathIndex(0) {
     loadTextures();
-    
     if (!directionTextures.empty()) {
         sprite.setTexture(*directionTextures["left"]); // Start with the left-facing texture
     }
-    
     sprite.setOrigin(static_cast<float>(TANK_WIDTH) / 2.0f, static_cast<float>(TANK_HEIGHT));
     sprite.setPosition(x, y);
-    sprite.setScale(static_cast<float>(TANK_WIDTH) / sprite.getLocalBounds().width,
-                    static_cast<float>(TANK_HEIGHT) / sprite.getLocalBounds().height);
+    sprite.setScale(
+        static_cast<float>(TANK_WIDTH) / sprite.getLocalBounds().width,
+        static_cast<float>(TANK_HEIGHT) / sprite.getLocalBounds().height
+    );
 }
 
 // Load texture for each direction using fixed paths
@@ -29,7 +30,6 @@ void Tank::loadTextures() {
         {"down_right", "../assets/enemies/tank/tank_down_right.png"},
         {"down_left", "../assets/enemies/tank/tank_down_left.png"}
     };
-
     for (const auto& [dir, path] : directionPaths) {
         auto texture = TextureManager::getInstance().getTexture(path);
         if (texture) {
@@ -54,22 +54,40 @@ void Tank::draw(sf::RenderWindow& window) const {
 
 void Tank::setDirection(float dx, float dy) {
     if (dx == 0 && dy < 0) {
-        sprite.setTexture(*directionTextures["up"]);
-    } else if (dx == 0 && dy > 0) {
-        sprite.setTexture(*directionTextures["down"]);
-    } else if (dy == 0 && dx < 0) {
-        sprite.setTexture(*directionTextures["left"]);
-    } else if (dy == 0 && dx > 0) {
-        sprite.setTexture(*directionTextures["right"]);
-    } else if (dx > 0 && dy < 0) {
-        sprite.setTexture(*directionTextures["up_right"]);
-    } else if (dx < 0 && dy < 0) {
-        sprite.setTexture(*directionTextures["up_left"]);
-    } else if (dx > 0 && dy > 0) {
-        sprite.setTexture(*directionTextures["down_right"]);
-    } else if (dx < 0 && dy > 0) {
-        sprite.setTexture(*directionTextures["down_left"]);
+        sprite.setTexture(*directionTextures.at("up"));
     }
+    else if (dx == 0 && dy > 0) {
+        sprite.setTexture(*directionTextures.at("down"));
+    }
+    else if (dy == 0 && dx < 0) {
+        sprite.setTexture(*directionTextures.at("left"));
+    }
+    else if (dy == 0 && dx > 0) {
+        sprite.setTexture(*directionTextures.at("right"));
+    }
+    else if (dx > 0 && dy < 0) {
+        sprite.setTexture(*directionTextures.at("up_right"));
+    }
+    else if (dx < 0 && dy < 0) {
+        sprite.setTexture(*directionTextures.at("up_left"));
+    }
+    else if (dx > 0 && dy > 0) {
+        sprite.setTexture(*directionTextures.at("down_right"));
+    }
+    else if (dx < 0 && dy > 0) {
+        sprite.setTexture(*directionTextures.at("down_left"));
+    }
+    // Additional debug to verify texture change
+    std::cout << "Tank direction set to: " 
+              << ((dx == 0 && dy < 0) ? "up" :
+                  (dx == 0 && dy > 0) ? "down" :
+                  (dy == 0 && dx < 0) ? "left" :
+                  (dy == 0 && dx > 0) ? "right" :
+                  (dx > 0 && dy < 0) ? "up_right" :
+                  (dx < 0 && dy < 0) ? "up_left" :
+                  (dx > 0 && dy > 0) ? "down_right" :
+                  (dx < 0 && dy > 0) ? "down_left" : "unknown") 
+              << "\n";
 }
 
 void Tank::move(float deltaTime) {
@@ -77,12 +95,12 @@ void Tank::move(float deltaTime) {
         sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
         sf::Vector2f direction = targetPos - sprite.getPosition();
         float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-
         if (distance > 1.0f) {
             direction /= distance; // Normalize direction
-            setDirection(direction.x, direction.y); // Update direction quicker
+            setDirection(direction.x, direction.y); // Update direction
             sprite.move(direction * speed * deltaTime); // Move tank
-        } else {
+        }
+        else {
             currentPathIndex++; // Move to the next tile in the path
         }
     }

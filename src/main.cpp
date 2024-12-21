@@ -10,10 +10,11 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Stronghold Reckoning");
     window.setFramerateLimit(60);
 
-    // Initialize MapScreen with 64 rows x 64 columns
+    // Initialize MapScreen with desired dimensions
+    // For example, a 30x30 map
     MapScreen mapScreen(30, 30, window.getSize());
-
     sf::Clock deltaClock;
+
     while (window.isOpen()) {
         sf::Time deltaTime = deltaClock.restart();
         float deltaSeconds = deltaTime.asSeconds(); // Convert sf::Time to float
@@ -44,7 +45,6 @@ int main() {
             // Delegate handling to MapScreen
             mapScreen.handleEvents(event, window);
         }
-
         // Update camera position
         mapScreen.moveCamera(deltaTime);
 

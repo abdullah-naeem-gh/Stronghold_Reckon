@@ -6,6 +6,7 @@
 Map::Map(int rows, int cols)
     : rows(rows), cols(cols), nextBuildingId(1) {
     initializeTiles();
+    saveState(); // Save the initial state
 }
 
 void Map::initializeTiles() {
@@ -17,8 +18,7 @@ void Map::initializeTiles() {
             tiles[row][col]->setPosition(isoPos.x, isoPos.y);
         }
     }
-
-    // Add edges between neighboring tiles
+    // Add edges between neighboring tiles (existing logic)
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
             auto tile = tiles[row][col];
@@ -44,7 +44,7 @@ std::shared_ptr<Tile> Map::getTile(int row, int col) const {
     return tiles[row][col];
 }
 
-bool Map::addBuilding(int row, int col, const std::string& buildingTexture, TileType type) {
+bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
     auto tile = getTile(row, col);
     if (!tile) {
         std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
@@ -54,14 +54,17 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture, Tile
         std::cerr << "Tile already has a building.\n";
         return false;
     }
+    if (tile->isBlocked()) {
+        std::cerr << "Cannot place a building on a blocked tile.\n";
+        return false;
+    }
     sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
     sf::Vector2f buildingPosition = sf::Vector2f(
         isoPos.x + Tile::TILE_WIDTH / 2.0f,
-        isoPos.y + Tile::TILE_HEIGHT - (Building::BUILDING_HEIGHT / 2.0f)
+        isoPos.y + Tile::TILE_HEIGHT
     );
     auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
     tile->setBuilding(building);
-    tile->setType(type); // Set the tile type to the provided type
     saveState();
     return true;
 }
@@ -76,7 +79,7 @@ bool Map::addWall(int row, int col) {
         std::cerr << "Tile already has a building.\n";
         return false;
     }
-    tile->setType(TileType::Wall); // Set the tile type to Wall
+    tile->setType(TileType::Wall);
     saveState();
     return true;
 }
@@ -103,20 +106,22 @@ void Map::saveToFile(const std::string& filename) {
         std::cerr << "Error opening file for writing.\n";
         return;
     }
-
     outFile << rows << " " << cols << "\n";
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
             auto tile = getTile(row, col);
-            outFile << static_cast<int>(tile->getType()) << " ";
+            outFile << static_cast<int>(tile->getType()) << " " 
+                    << tile->getTexturePath() << " ";
             auto building = tile->getBuilding();
             if (building) {
-                outFile << building->getId() << " " << building->getTexturePath() << "\n";
+                outFile << building->getId() << " " 
+                        << building->getTexturePath() << "\n";
             } else {
                 outFile << "-1 -\n";
             }
         }
     }
+    std::cout << "Map saved successfully to " << filename << std::endl;
     outFile.close();
 }
 
@@ -126,74 +131,97 @@ void Map::loadFromFile(const std::string& filename) {
         std::cerr << "Error opening file for reading.\n";
         return;
     }
-
     inFile >> rows >> cols;
     tiles.clear();
+    tiles.resize(rows, std::vector<std::shared_ptr<Tile>>(cols, nullptr));
     initializeTiles();
+    
     int tileType, buildingId;
     std::string texturePath;
+    
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
-            inFile >> tileType >> buildingId >> texturePath;
+            inFile >> tileType >> texturePath >> buildingId;
             auto tile = getTile(row, col);
+            tile->setTexturePath(texturePath);
             tile->setType(static_cast<TileType>(tileType));
+            
             if (buildingId != -1) {
+                inFile >> texturePath; // Read the building texture path
                 sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
-                sf::Vector2f buildingPosition = sf::Vector2f(
+                sf::Vector2f buildingPosition(
                     isoPos.x + Tile::TILE_WIDTH / 2.0f,
                     isoPos.y + Tile::TILE_HEIGHT
                 );
-                auto building = std::make_shared<Building>(buildingId, buildingPosition.x, buildingPosition.y, texturePath);
+                auto building = std::make_shared<Building>(
+                    buildingId, buildingPosition.x, buildingPosition.y, texturePath
+                );
                 tile->setBuilding(building);
             } else {
                 tile->setBuilding(nullptr);
             }
         }
     }
+    std::cout << "Map loaded successfully from " << filename << std::endl;
     inFile.close();
     saveState();
 }
 
+
 void Map::saveState() {
-    undoStack.push(GameState(tiles));
-    while (!redoStack.empty()) {
-        redoStack.pop();
-    }
+    GameState currentState(tiles);
+    stateManager.saveState(currentState);
 }
 
 void Map::undo() {
-    if (!undoStack.empty()) {
-        redoStack.push(GameState(tiles));
-        GameState previousState = undoStack.top();
-        undoStack.pop();
-        restoreGameState(previousState);
+    if (stateManager.undo()) {
+        const GameState* previousState = stateManager.getCurrentState();
+        if (previousState) {
+            restoreGameState(*previousState);
+        }
+    } else {
+        std::cerr << "No more actions to undo.\n";
     }
 }
 
 void Map::redo() {
-    if (!redoStack.empty()) {
-        undoStack.push(GameState(tiles));
-        GameState nextState = redoStack.top();
-        redoStack.pop();
-        restoreGameState(nextState);
+    if (stateManager.redo()) {
+        const GameState* nextState = stateManager.getCurrentState();
+        if (nextState) {
+            restoreGameState(*nextState);
+        }
+    } else {
+        std::cerr << "No more actions to redo.\n";
     }
 }
 
 void Map::restoreGameState(const GameState& state) {
-    tiles = state.getTiles();
-    for (const auto& row : tiles) {
-        for (const auto& tile : row) {
-            if (tile->getType() == TileType::Building && tile->getBuilding()) {
-                sf::Vector2f tilePos = tile->getPosition();
-                sf::Vector2f buildingPosition = sf::Vector2f(
-                    tilePos.x + Tile::TILE_WIDTH / 2.0f,
-                    tilePos.y + Tile::TILE_HEIGHT
-                );
-                tile->getBuilding()->setPosition(buildingPosition.x, buildingPosition.y);
-                if (tile->getBuilding()->getId() >= nextBuildingId) {
-                    nextBuildingId = tile->getBuilding()->getId() + 1;
+    const auto& tileStates = state.getTileStates();
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t col = 0; col < cols; ++col) {
+            auto tile = tiles[row][col];
+            const auto& tileState = tileStates[row][col];
+            if (tile) {
+                tile->setTexturePath(tileState.texturePath); // Set texture first
+                tile->setType(tileState.type); // Then set type
+                if (tileState.buildingId != -1) {
+                    // Recreate Building object
+                    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
+                    sf::Vector2f buildingPosition = sf::Vector2f(
+                        isoPos.x + Tile::TILE_WIDTH / 2.0f,
+                        isoPos.y + Tile::TILE_HEIGHT
+                    );
+                    auto building = std::make_shared<Building>(tileState.buildingId, buildingPosition.x, buildingPosition.y, tileState.buildingTexturePath);
+                    tile->setBuilding(building);
+                }
+                else {
+                    tile->setBuilding(nullptr);
                 }
             }
+            // Debugging output to verify restoration
+            std::cout << "Tile (" << tile->getRow() << ", " << tile->getCol() << ") Type: " 
+                      << static_cast<int>(tile->getType()) << ", Blocked: " 
+                      << tile->isBlocked() << "\n";
         }
     }
 }
