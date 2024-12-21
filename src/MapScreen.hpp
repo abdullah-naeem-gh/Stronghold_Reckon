@@ -5,6 +5,7 @@
 #include "Map.hpp"
 #include "UIManager.hpp"
 #include "TankSpawn.hpp"
+#include "SkeletonSpawn.hpp" // Include SkeletonSpawn header
 
 class MapScreen {
 public:
@@ -17,6 +18,8 @@ public:
     void loadMap(const std::string& filename);
     Map& getMapEntity();
 
+    void update(float deltaTime);
+
 private:
     Map mapEntity;
     UIManager uiManager;
@@ -24,6 +27,9 @@ private:
     sf::View cameraView;
     float cameraSpeed = 300.0f;
     TankSpawn tankSpawn;
+    SkeletonSpawn skeletonSpawn; // Add SkeletonSpawn instance
+    sf::Texture backgroundTexture;
+    sf::Sprite backgroundSprite;
 };
 
 #endif // MAPSCREEN_HPP

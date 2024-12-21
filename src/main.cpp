@@ -47,6 +47,7 @@ int main() {
         }
         // Update camera position
         mapScreen.moveCamera(deltaTime);
+        mapScreen.update(deltaSeconds); // Update logic for map screen including skeleton
 
         // Rendering
         window.clear(sf::Color::Black);

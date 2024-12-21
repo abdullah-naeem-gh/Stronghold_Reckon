@@ -5,7 +5,7 @@
 
 // Constructor initializes preset tiles and seeds the random number generator
 TankSpawn::TankSpawn(const Map& map)
-    : presetTiles({ {0, 29} /* Add other preset tiles here if needed */}),
+    : presetTiles({ {0, 29},{0, 25}, {0, 20} , {29,0} ,{25,0},{22,0},{19,0},{17,0}, {1,29} , {5,29} , {18,29}/* Add other preset tiles here if needed */}),
       pathFinder(map) {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 }

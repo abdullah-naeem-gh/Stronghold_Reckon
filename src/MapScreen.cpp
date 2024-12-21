@@ -2,13 +2,31 @@
 #include "IsometricUtils.hpp"
 #include <iostream>
 
+// ../assets/background/map_bg.png
+
 MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
     : mapEntity(rows, cols),
       uiManager(windowSize),
-      tankSpawn(mapEntity) {
+      tankSpawn(mapEntity),
+      skeletonSpawn(mapEntity) { // Initialize skeletonSpawn along with other entities
+    // Load the background texture
+    if (!backgroundTexture.loadFromFile("../assets/background/map_bg.png")) {
+        std::cerr << "Error loading background image" << std::endl;
+    }
+    backgroundSprite.setTexture(backgroundTexture);
+
+    // Scale the background to fit 1920x960 resolution
+    backgroundSprite.setScale(
+        1920.0f / static_cast<float>(backgroundTexture.getSize().x),
+        960.0f / static_cast<float>(backgroundTexture.getSize().y)
+    );
+    backgroundSprite.setPosition(-528, 50);
+
+    // Initialize the camera view
     cameraView.setSize(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
     sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2, cols / 2);
     cameraView.setCenter(centerPosition);
+
     uiManager.loadUI([this](const std::string& buildingTexture) {
         setSelectedBuildingType(buildingTexture);
     });
@@ -17,6 +35,8 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     uiManager.handleEvent(event);
     tankSpawn.handleEvent(event, mapEntity);
+    skeletonSpawn.handleEvent(event, mapEntity); // Pass the map entity to skeletonSpawn
+
     if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), cameraView);
         TileCoordinates tileCoords = IsometricUtils::screenToTile(mousePos.x, mousePos.y, mapEntity.getRows(), mapEntity.getCols());
@@ -29,8 +49,15 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
 
 void MapScreen::draw(sf::RenderWindow& window, float deltaTime) {
     window.setView(cameraView);
+
+    // Draw the background
+    window.draw(backgroundSprite);
+
+    // Draw map and other elements
     mapEntity.draw(window);
     tankSpawn.draw(window, deltaTime);
+    skeletonSpawn.draw(window, deltaTime); // Drawing skeletons
+
     window.setView(window.getDefaultView());
     uiManager.draw(window);
 }
@@ -95,3 +122,8 @@ Map& MapScreen::getMapEntity() {
 }
 
 void loadUI(const std::function<void(const std::string&, TileType)>& buildingSelectCallback);
+
+void MapScreen::update(float deltaTime) {
+    skeletonSpawn.update(deltaTime, mapEntity); // Ensure update logic is invoked
+    // Any other update logic...
+}
