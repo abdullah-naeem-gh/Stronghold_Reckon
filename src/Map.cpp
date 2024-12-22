@@ -2,6 +2,10 @@
 #include "Map.hpp"
 #include "IsometricUtils.hpp"
 #include <iostream>
+#include <optional>
+#include <queue>
+#include <tuple>
+#include <set>
 
 Map::Map(int rows, int cols)
     : rows(rows), cols(cols), nextBuildingId(1) {
@@ -65,6 +69,36 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
     );
     auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
     tile->setBuilding(building);
+    tile->setBlockStatus(true); // Block the tile after placing the building
+
+     if (buildingTexture == "../assets/buildings/townhall.png") {
+        if (row < 0 || row >= rows - 1 || col < 0 || col >= cols - 1) {
+            std::cerr << "Invalid tile coordinates for town hall placement.\n";
+            return false;
+        }
+
+        sf::Vector2f tileCentrePosition = IsometricUtils::tileToScreen(row, col);
+        sf::Vector2f buildingPosition = tileCentrePosition + sf::Vector2f(Tile::TILE_WIDTH, Tile::TILE_HEIGHT);
+
+        auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
+
+        for (int r = row; r <= row + 1; ++r) {
+            for (int c = col; c <= col + 1; ++c) {
+                auto tile = getTile(r, c);
+                tile->setBuilding(building);
+                tile->setBlockStatus(true);
+            }
+        }
+        saveState();
+        return true;
+    }
+    
+    if (buildingTexture == "../assets/walls/brick_wall.png") {
+        std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
+        tile->setType(TileType::Wall);
+        tile->setHealth(100); // Set wall health
+    }
+    // std::cout << "Building placed at tile: (" << row << ", " << col << "). Texture: " << buildingTexture << "\n";
     saveState();
     return true;
 }
@@ -246,4 +280,41 @@ std::vector<std::shared_ptr<Tile>> Map::getNeighbors(std::shared_ptr<Tile>& tile
     if (col < tiles[row].size() - 1 && !tiles[row][col + 1]->isBlocked())
         neighbors.push_back(tiles[row][col + 1]); // Right
     return neighbors;
+}
+
+std::shared_ptr<Tile> Map::findNearestWall(int startRow, int startCol) const {
+    if (!getTile(startRow, startCol)) {
+        std::cerr << "Invalid starting tile coordinates: (" << startRow << ", " << startCol << ").\n";
+        return nullptr;
+    }
+
+    std::queue<std::tuple<int, int, int>> q; // row, col, distance
+    std::set<std::pair<int, int>> visited;
+    q.emplace(startRow, startCol, 0);
+    visited.emplace(startRow, startCol);
+
+    const std::vector<std::pair<int, int>> directions = {
+        {0, 1}, {1, 0}, {0, -1}, {-1, 0}
+    };
+
+    while (!q.empty()) {
+        auto [row, col, dist] = q.front();
+        q.pop();
+
+        auto tile = getTile(row, col);
+        if (tile && tile->isBlocked()) {
+            return tile;
+        }
+
+        for (const auto& [dRow, dCol] : directions) {
+            int newRow = row + dRow;
+            int newCol = col + dCol;
+            if (visited.find({newRow, newCol}) == visited.end() && getTile(newRow, newCol)) {
+                q.emplace(newRow, newCol, dist + 1);
+                visited.emplace(newRow, newCol);
+            }
+        }
+    }
+
+    return nullptr;
 }

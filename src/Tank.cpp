@@ -1,8 +1,11 @@
 // Tank.cpp
 #include "Tank.hpp"
 #include "TextureManager.hpp"
+#include "Map.hpp"
 #include <iostream>
 #include <cmath>
+#include <thread>
+#include <chrono>
 
 Tank::Tank(float x, float y, const std::vector<std::shared_ptr<Tile>>& path)
     : path(path), currentPathIndex(0) {
@@ -78,19 +81,19 @@ void Tank::setDirection(float dx, float dy) {
         sprite.setTexture(*directionTextures.at("down_left"));
     }
     // Additional debug to verify texture change
-    std::cout << "Tank direction set to: " 
-              << ((dx == 0 && dy < 0) ? "up" :
-                  (dx == 0 && dy > 0) ? "down" :
-                  (dy == 0 && dx < 0) ? "left" :
-                  (dy == 0 && dx > 0) ? "right" :
-                  (dx > 0 && dy < 0) ? "up_right" :
-                  (dx < 0 && dy < 0) ? "up_left" :
-                  (dx > 0 && dy > 0) ? "down_right" :
-                  (dx < 0 && dy > 0) ? "down_left" : "unknown") 
-              << "\n";
+    // std::cout << "Tank direction set to: " 
+    //           << ((dx == 0 && dy < 0) ? "up" :
+    //               (dx == 0 && dy > 0) ? "down" :
+    //               (dy == 0 && dx < 0) ? "left" :
+    //               (dy == 0 && dx > 0) ? "right" :
+    //               (dx > 0 && dy < 0) ? "up_right" :
+    //               (dx < 0 && dy < 0) ? "up_left" :
+    //               (dx > 0 && dy > 0) ? "down_right" :
+    //               (dx < 0 && dy > 0) ? "down_left" : "unknown") 
+    //           << "\n";
 }
 
-void Tank::move(float deltaTime) {
+void Tank::move(float deltaTime, Map& map) {
     if (!path.empty() && currentPathIndex < path.size()) {
         sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
         sf::Vector2f direction = targetPos - sprite.getPosition();
@@ -103,5 +106,39 @@ void Tank::move(float deltaTime) {
         else {
             currentPathIndex++; // Move to the next tile in the path
         }
+    }
+    // else if (){
+        
+    // }
+
+    else if (currentPathIndex >= path.size() && getPosition().x != IsometricUtils::tileToScreen(townHall.row, townHall.col).x ||
+             getPosition().y != IsometricUtils::tileToScreen(townHall.row, townHall.col).y) {
+        
+        std::cout << "Wall encountered. Attacking wall...\n";
+// Identify the wall tile two tiles in front of the current tile
+        Pathfinding pathFinder(map);
+        TileCoordinates tankTileCoord = {path[currentPathIndex - 1]->getRow(), path[currentPathIndex - 1]->getCol()};
+        std::cout << "Tank at (" << tankTileCoord.row << ", " << tankTileCoord.col << ").\n";
+        std::shared_ptr<Tile> currentTile = map.getTile(tankTileCoord.row, tankTileCoord.col);
+        std::shared_ptr<Tile> nextTile = pathFinder.getNextTileInStraightPath(currentTile, map.getTile(townHall.row, townHall.col));
+        std::cout << "Next tile: (" << nextTile->getRow() << ", " << nextTile->getCol() << ").\n";
+        // std::shared_ptr<Tile> wallTile = pathFinder.getNextTileInStraightPath(nextTile, map.getTile(townHall.row, townHall.col));
+
+        std::shared_ptr<Tile> wallTile = map.findNearestWall(nextTile->getRow(), nextTile->getCol());
+        std::cout << "Wall encountered at (" << wallTile->getRow() << ", " << wallTile->getCol() << "), health: " << wallTile->getHealth() << ".\n";
+
+
+        // Attack the wall until its health falls below zero
+        while (wallTile && wallTile->getHealth() > 0) {
+            wallTile->takeDamage(10);
+            std::cout << "Tank attacking wall at (" << wallTile->getRow() << ", " << wallTile->getCol() << "). Wall health: " << wallTile->getHealth() << "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Slight delay in attacking
+        }
+
+        wallTile->setBlockStatus(false); // Unblock the wall after destroying it
+        // Recalculate path to town hall after destroying the wall
+        std::cout << "Wall destroyed. Recalculating path to town hall...\n";
+        path = pathFinder.findPath(map.getTile(tankTileCoord.row, tankTileCoord.col), map.getTile(townHall.row, townHall.col));
+        currentPathIndex = 0;
     }
 }

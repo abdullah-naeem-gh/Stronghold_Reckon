@@ -53,6 +53,10 @@ public:
     std::shared_ptr<Tile> getNeighbor(int dx, int dy) const;
 
     void takeDamage(int damage);
+    int getHealth();
+    void setHealth(int health);
+    bool isDestroyed() const; // Method to check if the tile is destroyed
+    void setBlockStatus(bool status); // Method to set the block status of the tile
 
 private:
     TileType type;
@@ -65,6 +69,8 @@ private:
     std::vector<std::shared_ptr<Tile>> neighbors; // List of edges to neighboring tiles
 
     void loadTexture(); // Helper method to load texture based on type and texturePath
+
+    int health;
 };
 
 #endif // TILE_HPP

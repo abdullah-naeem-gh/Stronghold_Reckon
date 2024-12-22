@@ -2,21 +2,31 @@
 #include "Building.hpp"
 #include "TextureManager.hpp"
 #include <iostream>
+#include "Tile.hpp"
 
 Building::Building(int id, float x, float y, const std::string& texturePath)
     : id(id), texturePath(texturePath) {
     auto texture = TextureManager::getInstance().getTexture(texturePath);
     if (!texture) {
         std::cerr << "Building texture not loaded: " << texturePath << std::endl;
-    }
-    else {
+    } else {
         sprite.setTexture(*texture);
-        // Set origin to the bottom center
-        sprite.setOrigin(static_cast<float>(texture->getSize().x) / 2.0f, static_cast<float>(texture->getSize().y));
-        // Align building position with the tile center
-        sprite.setPosition(x, y);
-        // Ensure no excessive scaling is applied initially
-        sprite.setScale(1.0f, 1.0f);
+
+        if (texturePath == "../assets/buildings/townhall.png") {
+            // Set origin to bottom-left corner
+            sprite.setOrigin(0.0f, 128.0f);
+
+            // Scale width to fit 2 tiles, keep height original
+            float scaleFactorX = (2 * static_cast<float>(Tile::TILE_WIDTH)) / 128.0f;
+            sprite.setScale(scaleFactorX, 1.0f);
+
+            // Position directly based on click
+            sprite.setPosition(x, y);
+        } else {
+            sprite.setOrigin(static_cast<float>(texture->getSize().x) / 2.0f, static_cast<float>(texture->getSize().y));
+            sprite.setScale(1.0f, 1.0f);
+            sprite.setPosition(x, y);
+        }
     }
 }
 

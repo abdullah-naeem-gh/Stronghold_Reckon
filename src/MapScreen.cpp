@@ -55,7 +55,7 @@ void MapScreen::draw(sf::RenderWindow& window, float deltaTime) {
 
     // Draw map and other elements
     mapEntity.draw(window);
-    tankSpawn.draw(window, deltaTime);
+    tankSpawn.draw(window, deltaTime, mapEntity);
     skeletonSpawn.draw(window, deltaTime); // Drawing skeletons
 
     window.setView(window.getDefaultView());

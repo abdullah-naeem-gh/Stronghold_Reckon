@@ -105,6 +105,7 @@ void Tile::setType(TileType newType) {
             case TileType::Water:
             case TileType::Wall:
                 blockStatus = true;
+                health = 100; // Reset health for walls
                 break;
             default:
                 blockStatus = false;
@@ -194,6 +195,30 @@ void Tile::draw(sf::RenderWindow& window) const {
 }
 
 void Tile::takeDamage(int damage) {
-    // Implement tile damage logic here if applicable
-    std::cout << "Tile at (" << row << ", " << col << ") took " << damage << " damage.\n";
+    if (isWall()) {
+        health -= damage;
+        if (health < 0) {
+            health = 0;
+            blockStatus = false;
+            type = TileType::Grass;
+            updateTexture();
+            std::cout << "Wall at (" << row << ", " << col << ") destroyed.\n";
+        }
+        std::cout << "Tile at (" << row << ", " << col << ") took " << damage << " damage. Health is now " << health << ".\n";
+    }
+}
+
+bool Tile::isDestroyed() const {
+    return health == 0;
+}
+int Tile::getHealth() {
+    return health;
+}
+
+void Tile::setHealth(int health) {
+    this->health = health;
+}
+
+void Tile::setBlockStatus(bool status) {
+    blockStatus = status;
 }

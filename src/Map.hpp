@@ -30,6 +30,8 @@ public:
     void undo();
     void redo();
 
+    std::shared_ptr<Tile> findNearestWall(int startRow, int startCol) const;
+
 private:
     int rows;
     int cols;

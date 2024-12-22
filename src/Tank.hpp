@@ -7,6 +7,8 @@
 #include <memory>
 #include <map>
 #include "Tile.hpp"
+#include "IsometricUtils.hpp"
+#include "Pathfinding.hpp"
 
 class Tank {
 public:
@@ -14,7 +16,9 @@ public:
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
     void draw(sf::RenderWindow& window) const;
-    void move(float deltaTime);
+    void move(float deltaTime, Map& map);
+
+    void attackWall(Tile* wall, float deltaTime);
 
     static const int TANK_WIDTH = 64;
     static const int TANK_HEIGHT = 64;
@@ -29,6 +33,9 @@ private:
 
     void setDirection(float dx, float dy);
     void loadTextures();
+
+    TileCoordinates townHall = {14, 14};
+
 };
 
 #endif // TANK_HPP

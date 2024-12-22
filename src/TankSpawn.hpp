@@ -17,7 +17,7 @@ public:
     // Handles events related to tank spawning
     void handleEvent(const sf::Event& event, Map& map);
     // Draws all active tanks on the window
-    void draw(sf::RenderWindow& window, float deltaTime);
+    void draw(sf::RenderWindow& window, float deltaTime, Map& map);
     // Returns a const reference to the vector of tanks for external access if needed
     const std::vector<Tank>& getTanks() const;
 

@@ -55,9 +55,9 @@ void TankSpawn::spawnTankOnPresetTile(Map& map) {
    }
 
 // Draws all active tanks
-void TankSpawn::draw(sf::RenderWindow& window, float deltaTime) {
+void TankSpawn::draw(sf::RenderWindow& window, float deltaTime, Map& map) {
     for (auto& tank : tanks) {
-        tank.move(deltaTime); // Update tank position based on delta time
+        tank.move(deltaTime, map); // Update tank position based on delta time
         tank.draw(window); // Render the tank on the window
     }
 }
