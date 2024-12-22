@@ -17,7 +17,8 @@ void Map::initializeTiles() {
     tiles.resize(rows, std::vector<std::shared_ptr<Tile>>(cols, nullptr));
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
-            tiles[row][col] = std::make_shared<Tile>(row, col);
+            // Initialize each tile as Grass
+            tiles[row][col] = std::make_shared<Tile>(row, col, TileType::Grass);
             sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
             tiles[row][col]->setPosition(isoPos.x, isoPos.y);
         }
@@ -92,7 +93,7 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
         saveState();
         return true;
     }
-    
+
     if (buildingTexture == "../assets/walls/brick_wall.png") {
         std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
         tile->setType(TileType::Wall);

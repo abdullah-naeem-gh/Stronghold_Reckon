@@ -1,4 +1,3 @@
-// Tile.hpp
 #ifndef TILE_HPP
 #define TILE_HPP
 
@@ -35,10 +34,9 @@ public:
     sf::Vector2f getPosition() const;
 
     void setTexturePath(const std::string& path); // Setter for texture path
-    std::string getTexturePath() const;           // Getter for texture path
+    std::string getTexturePath() const; // Getter for texture path
 
     void draw(sf::RenderWindow& window) const;
-
     void updateTexture();
 
     int getRow() const;
@@ -53,10 +51,10 @@ public:
     std::shared_ptr<Tile> getNeighbor(int dx, int dy) const;
 
     void takeDamage(int damage);
-    int getHealth();
+    int getHealth() const;
     void setHealth(int health);
-    bool isDestroyed() const; // Method to check if the tile is destroyed
-    void setBlockStatus(bool status); // Method to set the block status of the tile
+    bool isDestroyed() const;
+    void setBlockStatus(bool status);
 
 private:
     TileType type;
@@ -64,13 +62,14 @@ private:
     int col;
     bool blockStatus;
     sf::Sprite sprite;
-    std::string texturePath; // Stores the texture path for consistent restoration
+    std::string texturePath; // Stores the texture path for non-grass tiles
     std::shared_ptr<Building> building;
     std::vector<std::shared_ptr<Tile>> neighbors; // List of edges to neighboring tiles
-
     void loadTexture(); // Helper method to load texture based on type and texturePath
-
     int health;
+
+    // New member to store grass tile index for consistency
+    int grassTileIndex;
 };
 
 #endif // TILE_HPP

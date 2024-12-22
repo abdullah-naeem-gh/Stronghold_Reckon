@@ -5,6 +5,7 @@
 #include "Map.hpp"
 #include "UIManager.hpp"
 #include "TankSpawn.hpp"
+#include "TextureManager.hpp"
 #include "SkeletonSpawn.hpp" // Include SkeletonSpawn header
 
 class MapScreen {

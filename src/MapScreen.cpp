@@ -5,32 +5,46 @@
 // ../assets/background/map_bg.png
 
 MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
-    : mapEntity(rows, cols),
-      uiManager(windowSize),
-      tankSpawn(mapEntity),
-      skeletonSpawn(mapEntity) { // Initialize skeletonSpawn along with other entities
-    // Load the background texture
-    if (!backgroundTexture.loadFromFile("../assets/background/map_bg.png")) {
-        std::cerr << "Error loading background image" << std::endl;
-    }
-    backgroundSprite.setTexture(backgroundTexture);
+         : mapEntity(rows, cols),
+           uiManager(windowSize),
+           tankSpawn(mapEntity),
+           skeletonSpawn(mapEntity) { // Initialize skeletonSpawn along with other entities
 
-    // Scale the background to fit 1920x960 resolution
-    backgroundSprite.setScale(
-        1920.0f / static_cast<float>(backgroundTexture.getSize().x),
-        960.0f / static_cast<float>(backgroundTexture.getSize().y)
-    );
-    backgroundSprite.setPosition(-528, 50);
+         // Load the background texture
+         if (!backgroundTexture.loadFromFile("../assets/background/map_bg.png")) {
+             std::cerr << "Error loading background image" << std::endl;
+         }
+         backgroundSprite.setTexture(backgroundTexture);
 
-    // Initialize the camera view
-    cameraView.setSize(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
-    sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2, cols / 2);
-    cameraView.setCenter(centerPosition);
+         // Scale the background to fit 1920x960 resolution
+         backgroundSprite.setScale(
+             1920.0f / static_cast<float>(backgroundTexture.getSize().x),
+             960.0f / static_cast<float>(backgroundTexture.getSize().y)
+         );
+         backgroundSprite.setPosition(-528, 50);
 
-    uiManager.loadUI([this](const std::string& buildingTexture) {
-        setSelectedBuildingType(buildingTexture);
-    });
-}
+         // **Remove or comment out the sprite sheet loading here**
+         /*
+         // Load the sprite sheet using TextureManager
+         TextureManager& tm = TextureManager::getInstance();
+         if (!tm.loadSpriteSheet("../assets/tiles/spritesheet.png")) { // Specify your sprite sheet path correctly
+             std::cerr << "Failed to load sprite sheet." << std::endl;
+             // Optionally handle the error (e.g., exit or use a fallback texture)
+         } else {
+             std::cout << "Sprite sheet loaded successfully." << std::endl;
+         }
+         */
+
+         // Initialize the camera view
+         cameraView.setSize(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
+         sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2, cols / 2);
+         cameraView.setCenter(centerPosition);
+
+         // Load UI elements and bind callbacks
+         uiManager.loadUI([this](const std::string& buildingTexture) {
+             setSelectedBuildingType(buildingTexture);
+         });
+     }
 
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     uiManager.handleEvent(event);

@@ -1,4 +1,3 @@
-// Tile.cpp
 #include "Tile.hpp"
 #include "Building.hpp"
 #include "TextureManager.hpp"
@@ -8,34 +7,40 @@
 
 // Constructor
 Tile::Tile(int row, int col, TileType type)
-    : type(type), row(row), col(col), blockStatus(false), building(nullptr), texturePath("") {
+    : type(type), row(row), col(col), blockStatus(false), building(nullptr), texturePath(""), health(100), grassTileIndex(-1) {
     updateTexture();
 }
 
 // Copy Constructor
 Tile::Tile(const Tile& other)
     : type(other.type), row(other.row), col(other.col), blockStatus(other.blockStatus),
-      texturePath(other.texturePath), building(nullptr) {
-    // Load the same texture
-    auto texturePtr = TextureManager::getInstance().getTexture(texturePath);
-    if (texturePtr) {
-        sprite.setTexture(*texturePtr);
-        sprite.setScale(
-            static_cast<float>(TILE_WIDTH) / static_cast<float>(texturePtr->getSize().x),
-            static_cast<float>(TILE_HEIGHT) / static_cast<float>(texturePtr->getSize().y)
-        );
+      texturePath(other.texturePath), building(nullptr), health(other.health), grassTileIndex(other.grassTileIndex) {
+    if (type == TileType::Grass) {
+        // Use the sprite sheet and assign the same tile index for consistency
+        loadTexture();
+    } else {
+        // For non-grass tiles, load the same texture
+        TextureManager& tm = TextureManager::getInstance();
+        auto texturePtr = tm.getTexture(texturePath);
+        if (texturePtr) {
+            sprite.setTexture(*texturePtr);
+            sprite.setScale(
+                static_cast<float>(TILE_WIDTH) / static_cast<float>(texturePtr->getSize().x),
+                static_cast<float>(TILE_HEIGHT) / static_cast<float>(texturePtr->getSize().y)
+            );
+        }
     }
     sprite.setOrigin(other.sprite.getOrigin());
     sprite.setPosition(other.sprite.getPosition());
     sprite.setScale(other.sprite.getScale());
-    
+
     // Copy building if exists
     if (other.building) {
         building = std::make_shared<Building>(*other.building); // Deep copy
     }
 }
 
-// Setter for texturePath
+// Setter for texturePath (only for non-grass tiles)
 void Tile::setTexturePath(const std::string& path) {
     texturePath = path;
     loadTexture();
@@ -52,41 +57,69 @@ void Tile::loadTexture() {
     std::shared_ptr<sf::Texture> texturePtr;
 
     switch (type) {
-    case TileType::Grass:
-        if (!texturePath.empty()) {
-            texturePtr = tm.getTexture(texturePath);
-        } else {
-            // Randomly choose grass texture if texturePath is not set
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_int_distribution<> dis(1, 4);
-            int grassType = dis(gen);
-            texturePath = "../assets/tiles/grass" + std::to_string(grassType) + ".png";
-            texturePtr = tm.getTexture(texturePath);
+        case TileType::Grass: {
+            texturePtr = tm.getSpriteSheet();
+            if (!texturePtr) {
+                std::cerr << "Sprite sheet not loaded.\n";
+                return;
+            }
+            // Define sprite sheet grid
+            const int columns = 3;
+            const int rows = 6;
+            const int totalTiles = columns * rows;
+            const int tileWidth = 64;  // Adjust to your sprite sheet tile width
+            const int tileHeight = 32; // Adjust to your sprite sheet tile height
+
+            // If grassTileIndex is not set, randomly assign one
+            if (grassTileIndex == -1) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> dis(0, totalTiles - 1);
+                grassTileIndex = dis(gen);
+            }
+
+            // Calculate tile position in sprite sheet
+            int tileX = (grassTileIndex % columns) * tileWidth;
+            int tileY = (grassTileIndex / columns) * tileHeight;
+
+            // Assign texture and texture rectangle
+            sprite.setTexture(*texturePtr);
+            sprite.setTextureRect(sf::IntRect(tileX, tileY, tileWidth, tileHeight));
+
+            // Scale the sprite to fit the tile dimensions
+            sprite.setScale(
+                static_cast<float>(TILE_WIDTH) / static_cast<float>(tileWidth),
+                static_cast<float>(TILE_HEIGHT) / static_cast<float>(tileHeight)
+            );
+
+            break;
         }
-        break;
-    case TileType::Water:
-        texturePath = "../assets/tiles/water.png";
-        texturePtr = tm.getTexture(texturePath);
-        break;
-    case TileType::Road:
-        texturePath = "../assets/tiles/road.png";
-        texturePtr = tm.getTexture(texturePath);
-        break;
-    case TileType::Wall:
-        texturePath = "../assets/walls/brick_wall.png";
-        texturePtr = tm.getTexture(texturePath);
-        break;
+
+        case TileType::Water:
+            texturePath = "../assets/tiles/water.png";
+            texturePtr = tm.getTexture(texturePath);
+            break;
+
+        case TileType::Road:
+            texturePath = "../assets/tiles/road.png";
+            texturePtr = tm.getTexture(texturePath);
+            break;
+
+        case TileType::Wall:
+            texturePath = "../assets/walls/brick_wall.png";
+            texturePtr = tm.getTexture(texturePath);
+            health = 100; // Initialize health for walls
+            break;
     }
 
-    if (texturePtr) {
+    // For non-grass tiles, set the texture and scale
+    if (type != TileType::Grass && texturePtr) {
         sprite.setTexture(*texturePtr);
-        // Ensure the texture fills the tile
         sprite.setScale(
             static_cast<float>(TILE_WIDTH) / static_cast<float>(texturePtr->getSize().x),
             static_cast<float>(TILE_HEIGHT) / static_cast<float>(texturePtr->getSize().y)
         );
-    } else {
+    } else if (type != TileType::Grass && !texturePtr) {
         std::cerr << "Failed to load texture for tile at (" << row << ", " << col << ")\n";
     }
 }
@@ -94,18 +127,23 @@ void Tile::loadTexture() {
 // Set Type without altering building presence
 void Tile::setType(TileType newType) {
     type = newType;
+    // Reset grassTileIndex if changing to Grass
+    if (type == TileType::Grass) {
+        grassTileIndex = -1;
+    }
     loadTexture();
     // Update blockStatus based on type and building presence
     if (building != nullptr) {
         blockStatus = true;
-    }
-    else {
+    } else {
         // Define which tile types are blocked
         switch (type) {
             case TileType::Water:
             case TileType::Wall:
                 blockStatus = true;
-                health = 100; // Reset health for walls
+                if (type == TileType::Wall) {
+                    health = 100; // Reset health for walls
+                }
                 break;
             default:
                 blockStatus = false;
@@ -123,8 +161,7 @@ void Tile::setBuilding(std::shared_ptr<Building> buildingPtr) {
     if (buildingPtr) {
         // When a building is present, block the tile
         blockStatus = true;
-    }
-    else {
+    } else {
         // Re-evaluate blockStatus based on tile type
         switch (type) {
             case TileType::Water:
@@ -204,19 +241,21 @@ void Tile::takeDamage(int damage) {
             updateTexture();
             std::cout << "Wall at (" << row << ", " << col << ") destroyed.\n";
         }
-        std::cout << "Tile at (" << row << ", " << col << ") took " << damage << " damage. Health is now " << health << ".\n";
+        std::cout << "Tile at (" << row << ", " << col << ") took " << damage 
+                  << " damage. Health is now " << health << ".\n";
     }
 }
 
 bool Tile::isDestroyed() const {
     return health == 0;
 }
-int Tile::getHealth() {
+
+int Tile::getHealth() const {
     return health;
 }
 
-void Tile::setHealth(int health) {
-    this->health = health;
+void Tile::setHealth(int healthValue) {
+    health = healthValue;
 }
 
 void Tile::setBlockStatus(bool status) {
