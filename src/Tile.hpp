@@ -5,15 +5,14 @@
 #include <memory>
 #include <vector>
 #include <string>
-
-class Building;
+#include "Building.hpp"
+#include "Tower.hpp"
 
 enum class TileType {
     Grass,
     Water,
     Road,
     Wall
-    // Removed Building type
 };
 
 class Tile {
@@ -30,6 +29,9 @@ public:
     void setBuilding(std::shared_ptr<Building> buildingPtr);
     std::shared_ptr<Building> getBuilding() const;
 
+    void setTower(std::shared_ptr<Tower> towerPtr);
+    std::shared_ptr<Tower> getTower() const;
+
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
 
@@ -45,7 +47,6 @@ public:
     bool isBlocked() const;
     bool isWall() const;
 
-    // New methods
     void addEdge(std::shared_ptr<Tile> neighbor);
     const std::vector<std::shared_ptr<Tile>>& getNeighbors() const;
     std::shared_ptr<Tile> getNeighbor(int dx, int dy) const;
@@ -53,6 +54,7 @@ public:
     void takeDamage(int damage);
     int getHealth() const;
     void setHealth(int health);
+
     bool isDestroyed() const;
     void setBlockStatus(bool status);
 
@@ -62,13 +64,12 @@ private:
     int col;
     bool blockStatus;
     sf::Sprite sprite;
-    std::string texturePath; // Stores the texture path for non-grass tiles
+    std::string texturePath;
     std::shared_ptr<Building> building;
-    std::vector<std::shared_ptr<Tile>> neighbors; // List of edges to neighboring tiles
-    void loadTexture(); // Helper method to load texture based on type and texturePath
+    std::shared_ptr<Tower> tower; // Add Tower management
+    std::vector<std::shared_ptr<Tile>> neighbors;
+    void loadTexture();
     int health;
-
-    // New member to store grass tile index for consistency
     int grassTileIndex;
 };
 

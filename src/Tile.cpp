@@ -7,19 +7,18 @@
 
 // Constructor
 Tile::Tile(int row, int col, TileType type)
-    : type(type), row(row), col(col), blockStatus(false), building(nullptr), texturePath(""), health(100), grassTileIndex(-1) {
+    : type(type), row(row), col(col), blockStatus(false), building(nullptr), tower(nullptr) {
     updateTexture();
 }
 
-// Copy Constructor
+// Copy Constructor: Remove if deep copying isn't needed
 Tile::Tile(const Tile& other)
     : type(other.type), row(other.row), col(other.col), blockStatus(other.blockStatus),
-      texturePath(other.texturePath), building(nullptr), health(other.health), grassTileIndex(other.grassTileIndex) {
+      texturePath(other.texturePath), building(other.building), tower(other.tower), // Use references
+      health(other.health), grassTileIndex(other.grassTileIndex) {
     if (type == TileType::Grass) {
-        // Use the sprite sheet and assign the same tile index for consistency
         loadTexture();
     } else {
-        // For non-grass tiles, load the same texture
         TextureManager& tm = TextureManager::getInstance();
         auto texturePtr = tm.getTexture(texturePath);
         if (texturePtr) {
@@ -33,11 +32,6 @@ Tile::Tile(const Tile& other)
     sprite.setOrigin(other.sprite.getOrigin());
     sprite.setPosition(other.sprite.getPosition());
     sprite.setScale(other.sprite.getScale());
-
-    // Copy building if exists
-    if (other.building) {
-        building = std::make_shared<Building>(*other.building); // Deep copy
-    }
 }
 
 // Setter for texturePath (only for non-grass tiles)
@@ -229,6 +223,9 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (building) {
         building->draw(window);
     }
+    if (tower) {
+        tower->render(window);
+    }
 }
 
 void Tile::takeDamage(int damage) {
@@ -260,4 +257,13 @@ void Tile::setHealth(int healthValue) {
 
 void Tile::setBlockStatus(bool status) {
     blockStatus = status;
+}
+
+void Tile::setTower(std::shared_ptr<Tower> towerPtr) {
+    tower = towerPtr;
+    blockStatus = (tower != nullptr);
+}
+
+std::shared_ptr<Tower> Tile::getTower() const {
+    return tower;
 }

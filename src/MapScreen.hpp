@@ -7,6 +7,7 @@
 #include "TankSpawn.hpp"
 #include "TextureManager.hpp"
 #include "SkeletonSpawn.hpp" // Include SkeletonSpawn header
+#include "BulletManager.hpp"
 
 class MapScreen {
 public:
@@ -31,6 +32,7 @@ private:
     SkeletonSpawn skeletonSpawn; // Add SkeletonSpawn instance
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
+    BulletManager bulletManager; // Add BulletManager
 };
 
 #endif // MAPSCREEN_HPP
