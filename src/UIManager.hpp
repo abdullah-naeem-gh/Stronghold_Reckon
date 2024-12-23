@@ -1,4 +1,4 @@
-#ifndef UIMANAGER_HPP
+ #ifndef UIMANAGER_HPP
 #define UIMANAGER_HPP
 
 #include <SFML/Graphics.hpp>
@@ -20,6 +20,7 @@ public:
 
 private:
     sf::Sprite toolbarBackground;
+    sf::Sprite toolbarFlame; // Restored the flame
     std::vector<UIButton> buttons;
     float toolbarHeight;
     void addButton(const std::string& iconPath, const std::function<void()>& callback);

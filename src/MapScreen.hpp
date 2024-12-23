@@ -5,9 +5,9 @@
 #include "Map.hpp"
 #include "UIManager.hpp"
 #include "TankSpawn.hpp"
-#include "TextureManager.hpp"
-#include "SkeletonSpawn.hpp" // Include SkeletonSpawn header
+#include "SkeletonSpawn.hpp"
 #include "BulletManager.hpp"
+#include "Tower.hpp" // Include Tower class
 
 class MapScreen {
 public:
@@ -19,9 +19,9 @@ public:
     void saveMap(const std::string& filename);
     void loadMap(const std::string& filename);
     Map& getMapEntity();
-
     void update(float deltaTime);
-
+    void handleBulletCollisions();
+    
 private:
     Map mapEntity;
     UIManager uiManager;
@@ -29,10 +29,13 @@ private:
     sf::View cameraView;
     float cameraSpeed = 300.0f;
     TankSpawn tankSpawn;
-    SkeletonSpawn skeletonSpawn; // Add SkeletonSpawn instance
+    SkeletonSpawn skeletonSpawn;
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
-    BulletManager bulletManager; // Add BulletManager
+    BulletManager centralBulletManager; // Central BulletManager
+    std::vector<std::shared_ptr<Tower>> towers; // Vector of Towers
+
+    void initializeTowers(); // Initialize towers and pass central BulletManager
 };
 
 #endif // MAPSCREEN_HPP

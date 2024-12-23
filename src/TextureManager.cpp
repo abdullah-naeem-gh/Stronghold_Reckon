@@ -1,4 +1,3 @@
-// TextureManager.cpp
 #include "TextureManager.hpp"
 #include <iostream>
 
@@ -13,14 +12,12 @@ std::shared_ptr<sf::Texture> TextureManager::getTexture(const std::string& filen
     if (it != textures.end()) {
         return it->second;
     }
-
     // Load the texture
     auto texture = std::make_shared<sf::Texture>();
     if (!texture->loadFromFile(filename)) {
         std::cerr << "Failed to load texture: " << filename << std::endl;
         return nullptr;
     }
-
     // Store and return the texture
     textures[filename] = texture;
     return texture;
@@ -31,14 +28,12 @@ bool TextureManager::loadSpriteSheet(const std::string& filename) {
     if (spriteSheet && spriteSheet->getSize().x > 0 && spriteSheet->getSize().y > 0) {
         return true; // Already loaded
     }
-
     // Load the sprite sheet
     spriteSheet = std::make_shared<sf::Texture>();
     if (!spriteSheet->loadFromFile(filename)) {
         std::cerr << "Failed to load sprite sheet: " << filename << std::endl;
         return false;
     }
-
     return true;
 }
 

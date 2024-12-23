@@ -36,6 +36,7 @@ private:
     int rows;
     int cols;
     std::vector<std::vector<std::shared_ptr<Tile>>> tiles;
+    static std::vector<std::vector<TileType>> tileTypeMap; // Added static map
     GameStateManager stateManager;
     int nextBuildingId;
     void restoreGameState(const GameState& state);

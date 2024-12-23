@@ -1,28 +1,33 @@
 #include "Bullet.hpp"
-#include <string>
+#include "TextureManager.hpp"
 #include <iostream>
 #include <cmath>
 
 Bullet::Bullet(sf::Vector2f startPosition, sf::Vector2f targetPosition, float speed)
-    : position(startPosition), targetPosition(targetPosition), active(true),
-      currentFrame(0), animationTime(0.0f), stoppingThreshold(5.0f) {
-    
-    // Load each frame separately
+ : position(startPosition),
+   velocity(0.0f, 0.0f),
+   targetPosition(targetPosition),
+   active(true),
+   stoppingThreshold(5.0f), // stoppingThreshold might be removed if not used
+   currentFrame(0),
+   animationTime(0.0f) {
+    // Load each frame via TextureManager
     for (int i = 1; i <= 7; ++i) {
-        sf::Texture texture;
-        if (texture.loadFromFile("../assets/bullets/Moontowerbullet/b" + std::to_string(i) + ".png")) {
+        std::string path = "../assets/bullets/Moontowerbullet/b" + std::to_string(i) + ".png";
+        auto texture = TextureManager::getInstance().getTexture(path);
+        if (texture) {
             textures.push_back(texture);
         } else {
-            std::cerr << "Failed to load bullet frame: b" + std::to_string(i) + ".png" << std::endl;
+            std::cerr << "Failed to load bullet frame: " << path << std::endl;
         }
     }
-
     if (!textures.empty()) {
-        sprite.setTexture(textures[currentFrame]);
-        sprite.setOrigin(textures[currentFrame].getSize().x / 2.0f, textures[currentFrame].getSize().y / 2.0f);
+        sprite.setTexture(*textures[currentFrame]);
+        sprite.setOrigin(textures[currentFrame]->getSize().x / 2.0f, textures[currentFrame]->getSize().y / 2.0f);
     }
     sprite.setPosition(position);
 
+    // Calculate direction only if length is not zero to avoid division by zero
     sf::Vector2f direction = targetPosition - startPosition;
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     if (length != 0) {
@@ -61,27 +66,18 @@ Bullet& Bullet::operator=(Bullet&& other) noexcept {
     return *this;
 }
 
-
 void Bullet::update(float deltaTime) {
     if (active) {
         position += velocity * deltaTime;
         sprite.setPosition(position);
-
         // Animate the bullet
         animationTime += deltaTime;
         if (animationTime >= frameDuration) {
             animationTime = 0.0f;
             currentFrame = (currentFrame + 1) % textures.size();
-            sprite.setTexture(textures[currentFrame]); // Update sprite texture
+            sprite.setTexture(*textures[currentFrame]); // Update sprite texture
         }
-
-        // Calculate distance to the target
-        sf::Vector2f toTarget = targetPosition - position;
-        float distanceToTarget = std::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
-
-        if (distanceToTarget <= stoppingThreshold) {
-            active = false;
-        }
+        // Removed the stoppingThreshold logic
     }
 }
 
@@ -97,4 +93,12 @@ bool Bullet::isActive() const {
 
 const sf::Vector2f& Bullet::getPosition() const {
     return position;
+}
+
+void Bullet::deactivate() {
+    active = false;
+}
+
+sf::Sprite& Bullet::getSprite() {
+    return sprite;
 }

@@ -32,6 +32,9 @@ public:
     void setTower(std::shared_ptr<Tower> towerPtr);
     std::shared_ptr<Tower> getTower() const;
 
+    void setGrassTileIndex(int index);
+    int getGrassTileIndex() const; // This method provides the index
+
     void setPosition(float x, float y);
     sf::Vector2f getPosition() const;
 

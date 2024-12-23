@@ -2,16 +2,34 @@
 #include "TextureManager.hpp"
 #include <iostream>
 
-UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(100.0f) {
+UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(150.0f) { // Adjusted toolbar height
     auto bgTexture = TextureManager::getInstance().getTexture("../assets/ui/toolbar_background.png");
     if (bgTexture) {
         toolbarBackground.setTexture(*bgTexture);
-        toolbarBackground.setPosition(0, windowSize.y - toolbarHeight);
+        toolbarBackground.setPosition(-300, windowSize.y - toolbarHeight);
+        
+        // Adjust scaling for vertical stretch
         float scaleX = static_cast<float>(windowSize.x) / static_cast<float>(bgTexture->getSize().x);
         float scaleY = toolbarHeight / static_cast<float>(bgTexture->getSize().y);
         toolbarBackground.setScale(scaleX, scaleY);
     } else {
         std::cerr << "Toolbar background texture not loaded." << std::endl;
+    }
+
+    // Restore the flame texture and position
+    auto flameTexture = TextureManager::getInstance().getTexture("../assets/ui/toolbar_flame.png");
+    if (flameTexture) {
+        toolbarFlame.setTexture(*flameTexture);
+
+        // Scale the flame size (increased size multiplier for toolbar height)
+        float flameScaleY = (toolbarHeight / static_cast<float>(flameTexture->getSize().y)) * 2.5f; // Increased size multiplier for the toolbar height
+        float flameWidth = flameTexture->getSize().x * flameScaleY;
+
+        toolbarFlame.setScale(flameScaleY, flameScaleY);
+        // Adjusted the flame position to remain fixed relative to the toolbar
+        toolbarFlame.setPosition(windowSize.x - flameWidth - 155.0f, windowSize.y - toolbarHeight - 100.0f); 
+    } else {
+        std::cerr << "Toolbar flame texture not loaded." << std::endl;
     }
 }
 
@@ -37,7 +55,7 @@ void UIManager::loadUI(const std::function<void(const std::string&)>& buildingSe
     addButton("../assets/ui/button_townhall.png", townHallCallback);
     
     auto tower1Callback = [=]() {
-        buildingSelectCallback("../assets/buildings/tower1.png");
+        buildingSelectCallback("../assets/buildings/moontower.png");
     };
     addButton("../assets/ui/button_tower1.png", tower1Callback);
 }
@@ -84,4 +102,5 @@ void UIManager::draw(sf::RenderWindow& window) const {
     for (const auto& button : buttons) {
         window.draw(button.sprite);
     }
+    window.draw(toolbarFlame); // Ensure the flame is drawn
 }

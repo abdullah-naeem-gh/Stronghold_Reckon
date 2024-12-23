@@ -5,10 +5,23 @@
 #include "Tile.hpp"
 
 Skeleton::Skeleton(float x, float y, const std::vector<std::shared_ptr<Tile>>& path)
-    : path(path), currentPathIndex(0), currentAnimationFrame(0) {
+    : path(path), currentPathIndex(0), currentAnimationFrame(0), health(10) {
+   
     loadTextures();
-    sprite.setTexture(*directionTextures["left"][0]); // Initialize with the first frame for left
-    sprite.setOrigin(sprite.getLocalBounds().width / 2.0f, sprite.getLocalBounds().height / 2.0f);
+    if (!directionTextures["left"].empty()) {
+        sprite.setTexture(*directionTextures["left"][0]); // Initialize with the first frame for left
+    }
+
+    // Set the texture rectangle to focus on the central 64x64 area
+    sf::IntRect textureRect(96, 96, 64, 64); // Adjust based on the position of the skeleton in the image
+    sprite.setTextureRect(textureRect);
+
+    // Adjust origin to the center of this 64x64 area
+    sprite.setOrigin(32.0f, 32.0f);
+
+    // Optionally adjust scale if needed
+    sprite.setScale(1.0f, 1.0f); // Adjust if the skeleton needs to be rendered smaller or larger in-game
+
     sprite.setPosition(x, y);
 }
 
@@ -94,4 +107,24 @@ void Skeleton::move(float deltaTime) {
             currentPathIndex++;
         }
     }
+}
+void Skeleton::takeDamage(int damage) {
+    health -= damage;
+    if (health <= 0) {
+        health = 0;
+        std::cout << "Skeleton destroyed at position (" 
+                  << sprite.getPosition().x << ", " 
+                  << sprite.getPosition().y << ").\n";
+    } else {
+        std::cout << "Skeleton took " << damage 
+                  << " damage, remaining health: " << health << ".\n";
+    }
+}
+
+bool Skeleton::isAlive() const {
+    return health > 0;
+}
+
+sf::Sprite& Skeleton::getSprite() {
+    return sprite;
 }

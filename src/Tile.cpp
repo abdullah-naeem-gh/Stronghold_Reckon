@@ -267,3 +267,13 @@ void Tile::setTower(std::shared_ptr<Tower> towerPtr) {
 std::shared_ptr<Tower> Tile::getTower() const {
     return tower;
 }
+
+void Tile::setGrassTileIndex(int index) {
+    grassTileIndex = index;
+    updateTexture(); // Trigger texture update with correct grass index
+}
+
+
+int Tile::getGrassTileIndex() const {
+    return grassTileIndex;
+}
