@@ -18,7 +18,7 @@ public:
 private:
     const Map& map;
 
-    // void attackWall(std::shared_ptr<Tile> wallTile);
+    void attackWall(std::shared_ptr<Tile> wallTile);
 };
 
 #endif // PATHFINDING_HPP

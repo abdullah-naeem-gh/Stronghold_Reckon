@@ -54,8 +54,8 @@ std::shared_ptr<Tile> Pathfinding::getTileTwoStepsBehind(std::shared_ptr<Tile> c
     return current->getNeighbor(-2 * stepX, -2 * stepY);
 }
 
-// void Pathfinding::attackWall(std::shared_ptr<Tile> wallTile) {
-//     // Implement wall attacking logic
-//     wallTile->takeDamage(10); // Example: Deal 10 damage
-//     // Optionally remove the wall if damage exceeds threshold
-// }
+void Pathfinding::attackWall(std::shared_ptr<Tile> wallTile) {
+    // Implement wall attacking logic
+    wallTile->takeDamage(10); // Example: Deal 10 damage
+    // Optionally remove the wall if damage exceeds threshold
+}
