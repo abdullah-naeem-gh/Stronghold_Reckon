@@ -39,7 +39,6 @@ private:
     sf::Texture backgroundTexture;
     sf::Sprite backgroundSprite;
     BulletManager centralBulletManager; // Central BulletManager
-    std::vector<std::shared_ptr<Tower>> towers; // Vector of Towers
 
     // traps
     std::string selectedTrapTexture; // Add a member variable for the selected trap texture

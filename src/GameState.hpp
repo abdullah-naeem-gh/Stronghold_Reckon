@@ -18,12 +18,14 @@ struct TileState {
     TileType type;
     std::string texturePath;
     int grassIndex;
+    
     int buildingId;
     std::string buildingTexturePath;
     bool hasTrap;
 
     std::string trapTexturePath;
     bool hasTower;
+
     int towerId;
     std::string towerTexturePath;
 

@@ -35,7 +35,7 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
             setSelectedBuildingType(texture);
         }
     });
-
+    // mapEntity.loadTownHallAnimation();
     // Initialize towers
     initializeTowers();
 }
@@ -63,10 +63,11 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
                 if (selectedBuildingTexture == "../assets/buildings/moontower.png") {
                     // mapEntity.addBuilding(tile->getRow(), tile->getCol(), "../assets/buildings/moontower.png");
                     // Initialize a new tower instance
-                    sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(tileCoords.row, tileCoords.col);
-                    std::shared_ptr<Tower> newTower = std::make_shared<Tower>((mapEntity.nextTowerId)++, newTowerPos, 200.0f, 1.0f, centralBulletManager, selectedBuildingTexture);
-                    towers.push_back(newTower);
-                    tile->setTower(newTower);
+                    mapEntity.addTower(tile->getRow(), tile->getCol(), selectedBuildingTexture);
+                    // sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(tileCoords.row, tileCoords.col);
+                    // std::shared_ptr<Tower> newTower = std::make_shared<Tower>((mapEntity.nextTowerId)++, newTowerPos, 200.0f, 1.0f, centralBulletManager, selectedBuildingTexture);
+                    // towers.push_back(newTower);
+                    // tile->setTower(newTower);
                 } else {
                     // mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
                     mapEntity.addBuilding(tile->getRow(), tile->getCol(), selectedBuildingTexture);
@@ -94,9 +95,9 @@ void MapScreen::draw(sf::RenderWindow& window, float deltaTime) {
     skeletonSpawn.draw(window, deltaTime);
 
     // Draw towers first
-    for (const auto& tower : towers) {
-        tower->render(window);
-    }
+    // for (const auto& tower : mapEntity.getTowers()) {
+    //     tower->render(window);
+    // }
 
     // Render bullets AFTER towers to ensure they are visible above everything else
     centralBulletManager.render(window);
@@ -197,7 +198,7 @@ void MapScreen::update(float deltaTime) {
     }
 
     // Update all towers with troop positions
-    for (auto& tower : towers) {
+    for (auto& tower : mapEntity.getTowers()) {
         tower->update(deltaTime, troopPositions);
     }
 
@@ -211,9 +212,9 @@ void MapScreen::handleBulletCollisions(float deltaTime) {
         if (!bullet.isActive()) continue;
         sf::FloatRect bulletBounds = bullet.getSprite().getGlobalBounds();
         // Log bullet bounds
-        std::cout << "Bullet bounds: (" << bulletBounds.left << ", "
-                  << bulletBounds.top << ", " << bulletBounds.width << ", "
-                  << bulletBounds.height << ")\n";
+        // std::cout << "Bullet bounds: (" << bulletBounds.left << ", "
+        //           << bulletBounds.top << ", " << bulletBounds.width << ", "
+        //           << bulletBounds.height << ")\n";
 
         for (auto& skeleton : skeletonSpawn.getSkeletons()) {
             if (!skeleton->isAlive()) continue;

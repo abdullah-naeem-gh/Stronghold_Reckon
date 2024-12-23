@@ -146,6 +146,35 @@ bool Map::addWall(int row, int col) {
     return true;
 }
 
+bool Map::addTower(int row, int col, const std::string& selectedBuildingTexture) {
+    auto tile = getTile(row, col);
+    if (!tile) {
+        std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
+        return false;
+    }
+    if (tile->getBuilding() != nullptr) {
+        std::cerr << "Tile already has a building.\n";
+        return false;
+    }
+    if (tile->getTower() != nullptr) {
+        std::cerr << "Tile already has a tower.\n";
+        return false;
+    }
+    if (tile->isBlocked()) {
+        std::cerr << "Cannot place a tower on a blocked tile.\n";
+        return false;
+    }
+    sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(row, col);
+    std::shared_ptr<Tower> newTower = std::make_shared<Tower>(nextTowerId++, newTowerPos, 200.0f, 1.0f, centralBulletManager, selectedBuildingTexture);
+    towers.push_back(newTower);
+    tile->setTower(newTower);
+
+    std::cout << "Tower placed at tile: (" << row << ", " << col << "). Saving state...\n";
+    saveState();
+
+    return true;
+}
+
 void Map::draw(sf::RenderWindow& window) const {
     for (const auto& row : tiles) {
         for (const auto& tile : row) {
@@ -306,11 +335,6 @@ void Map::restoreGameState(const GameState& state) {
                     auto building = std::make_shared<Building>(
                         tileState.buildingId, row, col, tileState.buildingTexturePath
                     );
-                    // if (building->getTexturePath() == "../assets/walls/brick_wall.png") {
-                    //     tile->setType(TileType::Wall);
-                    //     tile->setBlockStatus(true); // Block the tile after placing the building
-                    //     tile->setHealth(10); // Set wall health
-                    // }
                     tile->setBuilding(building);
                 } else {
                     tile->setBuilding(nullptr);
@@ -322,7 +346,7 @@ void Map::restoreGameState(const GameState& state) {
                     tile->setTrap(nullptr);
                 }
                 if (tileState.hasTower) {
-                    std::cout << "Tower placed at tile: (" << row << ", " << col << ").\n";
+                    // std::cout << "Tower placed at tile: (" << row << ", " << col << ").\n";
                     auto tower = std::make_shared<Tower>(
                         tileState.towerId, sf::Vector2f(), 200.0f, 1.0f, centralBulletManager, tileState.towerTexturePath
                     );
@@ -427,3 +451,58 @@ bool Map::addTrap(int row, int col, const std::string& trapTexture) {
     // std::cout << "Trap texture: " << trapTexture << "\n";
     return true;
 }
+
+
+std::vector<std::shared_ptr<Tower>> Map::getTowers() const {
+    return towers;
+}
+
+
+
+// void Map::loadTownHallAnimation() {
+//     auto texture = TextureManager::getInstance().getTexture("../assets/spritesheets/townhall_animation.png");
+//     if (!texture) {
+//         std::cerr << "Failed to load townhall animation texture.\n";
+//         return;
+//     }
+
+//     townHallSprite.setTexture(*texture);
+
+//     // Assuming each frame is 64x64 pixels
+//     for (int i = 0; i < 10; ++i) {
+//         townHallFrames.push_back(sf::IntRect(i * 64, 0, 64, 64));
+//     }
+
+//     sf::Vector2f position = IsometricUtils::tileToScreen(14, 14);
+//     townHallSprite.setPosition(position.x, position.y);
+//     townHallSprite.setTextureRect(townHallFrames[0]);
+// }
+
+// // Update the animation in your Map class
+// void Map::update(float deltaTime) {
+//     if (playing) {
+//         currentTime += deltaTime;
+//         if (currentTime >= frameTime) {
+//             currentTime = 0.0f;
+//             currentFrame++;
+//             if (currentFrame >= townHallFrames.size()) {
+//                 playing = false;
+//                 currentFrame = townHallFrames.size() - 1; // Stop at the last frame
+//             }
+//             townHallSprite.setTextureRect(townHallFrames[currentFrame]);
+//         }
+//     }
+// }
+
+// // Draw the animation in your Map class
+// void Map::draw(sf::RenderWindow& window) const {
+//     for (const auto& row : tiles) {
+//         for (const auto& tile : row) {
+//             tile->draw(window);
+//         }
+//     }
+
+//     if (playing) {
+//         window.draw(townHallSprite);
+//     }
+// }

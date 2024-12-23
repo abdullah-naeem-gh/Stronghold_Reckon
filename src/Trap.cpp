@@ -6,6 +6,8 @@ Trap::Trap(const std::string& texturePath) : active(true) {
         std::cerr << "Failed to load trap texture: " << texturePath << std::endl;
     }
     sprite.setTexture(texture);
+    sprite.setOrigin(0, static_cast<float>(64) / 2.0f);
+
     this->texturePath = texturePath;
     if (texturePath == "../assets/traps/BarrelBomb/barrel.png") {
         damage = 100;

@@ -17,7 +17,7 @@ Tower::Tower(int id, sf::Vector2f position, float range, float fireRate, BulletM
         std::cerr << "Failed to load tower texture.\n";
     }
 
-    std::cout << "Tower created at (" << position.x << ", " << position.y << ") with id = " << id <<"\n";
+    // std::cout << "Tower created at (" << position.x << ", " << position.y << ") with id = " << id <<"\n";
 }
 
 void Tower::update(float deltaTime, const std::vector<sf::Vector2f>& troopPositions) {

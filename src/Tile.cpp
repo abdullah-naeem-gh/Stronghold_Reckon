@@ -235,6 +235,9 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (trap) {
         trap->draw(window, sprite.getPosition().x, sprite.getPosition().y);
     }
+    if (tower) {
+        tower->render(window);
+    }
 }
 
 void Tile::takeDamage(float damage) {
@@ -270,6 +273,7 @@ void Tile::setBlockStatus(bool status) {
 }
 
 void Tile::setTower(std::shared_ptr<Tower> towerPtr) {
+    // std::cout << "Tower placed at tile: (" << row << ", " << col << "). ptr: " << towerPtr << "\n";
     tower = towerPtr;
     blockStatus = (tower != nullptr);
 }
@@ -292,7 +296,7 @@ int Tile::getGrassTileIndex() const {
 
 void Tile::setTrap(std::shared_ptr<Trap> trapPtr) {
     if (trapPtr) {
-        std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+        // std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
     }
     trap = trapPtr;
 }

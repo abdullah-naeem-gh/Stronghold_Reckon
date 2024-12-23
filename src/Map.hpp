@@ -11,6 +11,7 @@
 #include <fstream>
 #include <SFML/Graphics.hpp>
 #include "IsometricUtils.hpp"
+#include "TextureManager.hpp"
 
 #include "BulletManager.hpp"
 
@@ -40,18 +41,36 @@ public:
     int nextTowerId;
 
 
-    
+    bool addTower(int row, int col, const std::string& selectedBuildingTexture);
+    std::vector<std::shared_ptr<Tower>> getTowers() const;
+
+
+    // void loadTownHallAnimation();
+    // void update(float deltaTime);
+    // void draw(sf::RenderWindow& window) const;
 
 private:
     int rows;
     int cols;
     std::vector<std::vector<std::shared_ptr<Tile>>> tiles;
     static std::vector<std::vector<TileType>> tileTypeMap; // Added static map
+
+    std::vector<std::shared_ptr<Tower>> towers; // Vector of Towers
+
     GameStateManager stateManager;
 
     BulletManager& centralBulletManager;
     
     void restoreGameState(const GameState& state);
+
+
+
+    // sf::Sprite townHallSprite;
+    // std::vector<sf::IntRect> townHallFrames;
+    // float frameTime = 0.1f;
+    // float currentTime = 0.0f;
+    // size_t currentFrame = 0;
+    // bool playing = true;
 };
 
 #endif // MAP_HPP

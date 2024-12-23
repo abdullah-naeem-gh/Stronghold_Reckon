@@ -37,21 +37,23 @@ Tank::Tank(float x, float y, const Map& map, const Tile& townHall)
     //     std::cout << "(" << tile->getRow() << ", " << tile->getCol() << ") -> ";
     // }
 
-    // // Load explosion textures
-    // for (int i = 1; i <= 10; ++i) {
-    //     std::string path = "../assets/explosions/Explosion_8/Explosion_" + std::to_string(i) + ".png";
-    //     auto texture = TextureManager::getInstance().getTexture(path);
-    //     if (texture) {
-    //         explosionTextures.push_back(texture);
-    //         // std::cout << "Explosion texture loaded: " << path << std::endl;
-    //     } else {
-    //         std::cerr << "Explosion texture not loaded: " << path << std::endl;
-    //     }
-    // }
-    // if (!explosionTextures.empty()) {
-    //     explosionSprite.setTexture(*explosionTextures[0]);
-    //     explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
-    // }
+    // Load explosion textures
+    for (int i = 1; i <= 10; ++i) {
+        std::string path = "../assets/explosions/Explosion_1/Explosion_" + std::to_string(i) + ".png";
+        auto texture = TextureManager::getInstance().getTexture(path);
+        if (texture) {
+            explosionTextures.push_back(texture);
+            // std::cout << "Explosion texture loaded: " << path << std::endl;
+        } else {
+            std::cerr << "Explosion texture not loaded: " << path << std::endl;
+        }
+    }
+    if (!explosionTextures.empty()) {
+        explosionSprite.setTexture(*explosionTextures[0]);
+        // explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
+        explosionSprite.setOrigin(static_cast<float>(64) / 1.0f, static_cast<float>(64) / 1.0f);
+
+    }
 }
 
 void Tank::update(float deltaTime) {
