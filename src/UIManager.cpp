@@ -2,7 +2,7 @@
 #include "TextureManager.hpp"
 #include <iostream>
 
-UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(150.0f) { // Adjusted toolbar height
+UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(150.0f) {
     auto bgTexture = TextureManager::getInstance().getTexture("../assets/ui/toolbar_background.png");
     if (bgTexture) {
         toolbarBackground.setTexture(*bgTexture);
@@ -16,48 +16,54 @@ UIManager::UIManager(const sf::Vector2u& windowSize) : toolbarHeight(150.0f) { /
         std::cerr << "Toolbar background texture not loaded." << std::endl;
     }
 
-    // Restore the flame texture and position
+    // Load and position the flame texture
     auto flameTexture = TextureManager::getInstance().getTexture("../assets/ui/toolbar_flame.png");
     if (flameTexture) {
         toolbarFlame.setTexture(*flameTexture);
-
-        // Scale the flame size (increased size multiplier for toolbar height)
-        float flameScaleY = (toolbarHeight / static_cast<float>(flameTexture->getSize().y)) * 2.5f; // Increased size multiplier for the toolbar height
+        float flameScaleY = (toolbarHeight / static_cast<float>(flameTexture->getSize().y)) * 2.5f;
         float flameWidth = flameTexture->getSize().x * flameScaleY;
-
         toolbarFlame.setScale(flameScaleY, flameScaleY);
-        // Adjusted the flame position to remain fixed relative to the toolbar
-        toolbarFlame.setPosition(windowSize.x - flameWidth - 155.0f, windowSize.y - toolbarHeight - 100.0f); 
+        toolbarFlame.setPosition(windowSize.x - flameWidth - 155.0f, windowSize.y - toolbarHeight - 100.0f);
     } else {
         std::cerr << "Toolbar flame texture not loaded." << std::endl;
     }
 }
 
-void UIManager::loadUI(const std::function<void(const std::string&)>& buildingSelectCallback) {
-    auto callback1 = [=]() {
-        buildingSelectCallback("../assets/buildings/building1.png");
+void UIManager::loadUI(const std::function<void(const std::string&, bool)>& selectCallback) {
+    auto buildingCallback1 = [=]() {
+        selectCallback("../assets/buildings/building1.png", false);
     };
-    addButton("../assets/ui/button_building1.png", callback1);
-    
-    auto callback2 = [=]() {
-        buildingSelectCallback("../assets/buildings/building2.png");
+    addButton("../assets/ui/button_building1.png", buildingCallback1);
+
+    auto buildingCallback2 = [=]() {
+        selectCallback("../assets/buildings/building2.png", false);
     };
-    addButton("../assets/ui/button_building2.png", callback2);
-    
+    addButton("../assets/ui/button_building2.png", buildingCallback2);
+
     auto wallCallback = [=]() {
-        buildingSelectCallback("../assets/walls/brick_wall.png");
+        selectCallback("../assets/walls/brick_wall.png", false);
     };
     addButton("../assets/ui/button_wall.png", wallCallback);
-    
+
     auto townHallCallback = [=]() {
-        buildingSelectCallback("../assets/buildings/townhall.png");
+        selectCallback("../assets/buildings/townhall.png", false);
     };
     addButton("../assets/ui/button_townhall.png", townHallCallback);
-    
+
     auto tower1Callback = [=]() {
-        buildingSelectCallback("../assets/buildings/moontower.png");
+        selectCallback("../assets/buildings/moontower.png", false);
     };
     addButton("../assets/ui/button_tower1.png", tower1Callback);
+
+    auto barrelTrapCallback = [=]() {
+        selectCallback("../assets/traps/BarrelBomb/barrel.png", true);
+    };
+    addButton("../assets/traps/BarrelBomb/barrel.png", barrelTrapCallback);
+
+    auto mushroomTrapCallback = [=]() {
+        selectCallback("../assets/traps/MushroomField/mushrooms1.png", true);
+    };
+    addButton("../assets/traps/MushroomField/mushrooms1.png", mushroomTrapCallback);
 }
 
 void UIManager::addButton(const std::string& iconPath, const std::function<void()>& callback) {
@@ -102,5 +108,5 @@ void UIManager::draw(sf::RenderWindow& window) const {
     for (const auto& button : buttons) {
         window.draw(button.sprite);
     }
-    window.draw(toolbarFlame); // Ensure the flame is drawn
+    window.draw(toolbarFlame);
 }

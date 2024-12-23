@@ -1,4 +1,4 @@
- #ifndef UIMANAGER_HPP
+#ifndef UIMANAGER_HPP
 #define UIMANAGER_HPP
 
 #include <SFML/Graphics.hpp>
@@ -14,13 +14,13 @@ struct UIButton {
 class UIManager {
 public:
     UIManager(const sf::Vector2u& windowSize);
-    void loadUI(const std::function<void(const std::string&)>& buildingSelectCallback);
+    void loadUI(const std::function<void(const std::string&, bool)>& selectCallback);
     void handleEvent(const sf::Event& event);
     void draw(sf::RenderWindow& window) const;
 
 private:
     sf::Sprite toolbarBackground;
-    sf::Sprite toolbarFlame; // Restored the flame
+    sf::Sprite toolbarFlame; 
     std::vector<UIButton> buttons;
     float toolbarHeight;
     void addButton(const std::string& iconPath, const std::function<void()>& callback);

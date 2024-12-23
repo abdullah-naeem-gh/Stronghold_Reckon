@@ -31,6 +31,8 @@ public:
     void redo();
 
     std::shared_ptr<Tile> findNearestWall(int startRow, int startCol) const;
+    bool addTrap(int row, int col, const std::string& trapTexture);
+
 
 private:
     int rows;

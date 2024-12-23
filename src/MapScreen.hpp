@@ -8,6 +8,8 @@
 #include "SkeletonSpawn.hpp"
 #include "BulletManager.hpp"
 #include "Tower.hpp" // Include Tower class
+#include "Tank.hpp"
+#include "Trap.hpp"
 
 class MapScreen {
 public:
@@ -21,6 +23,8 @@ public:
     Map& getMapEntity();
     void update(float deltaTime);
     void handleBulletCollisions();
+    void setSelectedTrapType(const std::string& trapTexture);
+
     
 private:
     Map mapEntity;
@@ -35,6 +39,8 @@ private:
     BulletManager centralBulletManager; // Central BulletManager
     std::vector<std::shared_ptr<Tower>> towers; // Vector of Towers
 
+    // traps
+    std::string selectedTrapTexture; // Add a member variable for the selected trap texture
     void initializeTowers(); // Initialize towers and pass central BulletManager
 };
 

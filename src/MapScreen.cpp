@@ -1,13 +1,16 @@
+// MapScreen.cpp
 #include "MapScreen.hpp"
 #include "IsometricUtils.hpp"
+#include "TextureManager.hpp"
 #include <iostream>
 
+// Constructor: Initializes all components and calls initializeTowers()
 MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
-    : mapEntity(rows, cols),
-      uiManager(windowSize),
-      tankSpawn(mapEntity),
+    : mapEntity(rows, cols), 
+      uiManager(windowSize), 
+      tankSpawn(mapEntity),    // Initialize TankSpawn with mapEntity
       skeletonSpawn(mapEntity),
-      centralBulletManager()  { // Central BulletManager
+      centralBulletManager() { // Initialize BulletManager
     // Load the background texture
     if (!backgroundTexture.loadFromFile("../assets/background/map_bg.png")) {
         std::cerr << "Error loading background image" << std::endl;
@@ -18,27 +21,32 @@ MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
         960.0f / static_cast<float>(backgroundTexture.getSize().y)
     );
     backgroundSprite.setPosition(-528, 50);
+
+    // Set up the camera
     cameraView.setSize(static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
     sf::Vector2f centerPosition = IsometricUtils::tileToScreen(rows / 2, cols / 2);
     cameraView.setCenter(centerPosition);
-    uiManager.loadUI([this](const std::string& buildingTexture) {
-        setSelectedBuildingType(buildingTexture);
+
+    // Load UI elements and set callbacks for building/trap selection
+    uiManager.loadUI([this](const std::string& texture, bool isTrap) {
+        if (isTrap) {
+            setSelectedTrapType(texture);
+        } else {
+            setSelectedBuildingType(texture);
+        }
     });
-    initializeTowers(); // Initialize towers and pass central BulletManager
+
+    // Initialize towers
+    initializeTowers();
 }
 
+// Initializes towers by creating Tower instances and adding them to the towers vector
 void MapScreen::initializeTowers() {
-    // Example: Initialize a tower at tile (10, 10)
-    sf::Vector2f towerPosition = IsometricUtils::tileToScreen(10, 10);
-    std::shared_ptr<Tower> tower = std::make_shared<Tower>(towerPosition, 200.0f, 1.0f, centralBulletManager);
-    towers.push_back(tower);
-    // Add more towers as needed, e.g.,
-    // sf::Vector2f anotherTowerPos = IsometricUtils::tileToScreen(12, 12);
-    // std::shared_ptr<Tower> anotherTower = std::make_shared<Tower>(anotherTowerPos, 200.0f, 1.0f, centralBulletManager);
-    // towers.push_back(anotherTower);
+    // No towers are initialized by default. Towers should be added via user actions or map loading.
 }
 
 
+// Handles input events and delegates them to respective managers
 void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     uiManager.handleEvent(event);
     tankSpawn.handleEvent(event, mapEntity);
@@ -48,18 +56,19 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), cameraView);
         TileCoordinates tileCoords = IsometricUtils::screenToTile(mousePos.x, mousePos.y, mapEntity.getRows(), mapEntity.getCols());
         auto tile = mapEntity.getTile(tileCoords.row, tileCoords.col);
-        if (tile && !selectedBuildingTexture.empty()) {
-            // Corrected condition to match the actual tower texture path
-            if (selectedBuildingTexture == "../assets/buildings/moontower.png") {
-                mapEntity.addBuilding(tileCoords.row, tileCoords.col, "../assets/buildings/moontower.png");
-                
-                // Initialize a new tower instance
-                sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(tileCoords.row, tileCoords.col);
-                std::shared_ptr<Tower> newTower = std::make_shared<Tower>(newTowerPos, 200.0f, 1.0f, centralBulletManager);
-                towers.push_back(newTower);
-            }
-            else if (!tile->getBuilding()) {
-                mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
+        if (tile) {
+            if (!selectedTrapTexture.empty() && !tile->hasTrap() && !tile->getBuilding()) {
+                mapEntity.addTrap(tileCoords.row, tileCoords.col, selectedTrapTexture);
+            } else if (!selectedBuildingTexture.empty() && !tile->getBuilding() && !tile->hasTrap()) {
+                if (selectedBuildingTexture == "../assets/buildings/moontower.png") {
+                    mapEntity.addBuilding(tileCoords.row, tileCoords.col, "../assets/buildings/moontower.png");
+                    // Initialize a new tower instance
+                    sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(tileCoords.row, tileCoords.col);
+                    std::shared_ptr<Tower> newTower = std::make_shared<Tower>(newTowerPos, 200.0f, 1.0f, centralBulletManager);
+                    towers.push_back(newTower);
+                } else {
+                    mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
+                }
             }
         }
     }
@@ -74,26 +83,40 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
     }
 }
 
+// Draws all game elements including background, map, spawns, towers, bullets, and UI
 void MapScreen::draw(sf::RenderWindow& window, float deltaTime) {
     window.setView(cameraView);
     window.draw(backgroundSprite);
     mapEntity.draw(window);
     tankSpawn.draw(window, deltaTime, mapEntity);
     skeletonSpawn.draw(window, deltaTime);
+
     // Draw towers first
     for (const auto& tower : towers) {
         tower->render(window);
     }
+
     // Render bullets AFTER towers to ensure they are visible above everything else
     centralBulletManager.render(window);
+
+    // Reset to default view and draw UI
     window.setView(window.getDefaultView());
     uiManager.draw(window);
 }
 
+// Sets the selected building type and clears any selected trap type
 void MapScreen::setSelectedBuildingType(const std::string& buildingTexture) {
     selectedBuildingTexture = buildingTexture;
+    selectedTrapTexture.clear(); // Clear selected trap texture when a building is selected
 }
 
+// Sets the selected trap type and clears any selected building type
+void MapScreen::setSelectedTrapType(const std::string& trapTexture) {
+    selectedTrapTexture = trapTexture;
+    selectedBuildingTexture.clear(); // Clear selected building texture when a trap is selected
+}
+
+// Moves the camera based on WASD input and clamps it within map boundaries
 void MapScreen::moveCamera(const sf::Time& deltaTime) {
     sf::Vector2f movement(0.0f, 0.0f);
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
@@ -109,6 +132,7 @@ void MapScreen::moveCamera(const sf::Time& deltaTime) {
         movement.x += cameraSpeed * deltaTime.asSeconds();
     }
     cameraView.move(movement);
+
     // Clamp camera within map boundaries
     sf::Vector2f leftMostTile = IsometricUtils::tileToScreen(mapEntity.getRows() - 1, 0);
     sf::Vector2f rightMostTile = IsometricUtils::tileToScreen(0, mapEntity.getCols() - 1);
@@ -120,6 +144,7 @@ void MapScreen::moveCamera(const sf::Time& deltaTime) {
     sf::Vector2f viewCenter = cameraView.getCenter();
     float halfWidth = viewSize.x / 2.0f;
     float halfHeight = viewSize.y / 2.0f;
+
     if (viewCenter.x - halfWidth < mapLeft) {
         viewCenter.x = mapLeft + halfWidth;
     }
@@ -135,22 +160,27 @@ void MapScreen::moveCamera(const sf::Time& deltaTime) {
     cameraView.setCenter(viewCenter);
 }
 
+// Saves the current map state to a file
 void MapScreen::saveMap(const std::string& filename) {
     mapEntity.saveToFile(filename);
 }
 
+// Loads the map state from a file
 void MapScreen::loadMap(const std::string& filename) {
     mapEntity.loadFromFile(filename);
 }
 
+// Provides access to the map entity
 Map& MapScreen::getMapEntity() {
     return mapEntity;
 }
 
+// Updates all game logic including spawns, towers, bullets, and handles collisions
 void MapScreen::update(float deltaTime) {
     skeletonSpawn.update(deltaTime, mapEntity);
-    tankSpawn.update(deltaTime, mapEntity);
+    tankSpawn.update(deltaTime, mapEntity); // Pass mapEntity as the second argument
     centralBulletManager.update(deltaTime);
+
     // Collect all troop positions
     std::vector<sf::Vector2f> troopPositions;
     for (const auto& skeleton : skeletonSpawn.getSkeletons()) {
@@ -159,23 +189,25 @@ void MapScreen::update(float deltaTime) {
         }
     }
     for (const auto& tank : tankSpawn.getTanks()) {
-        if (tank.isAlive()) {
-            troopPositions.emplace_back(tank.getPosition());
+        if (tank->isAlive()) {
+            troopPositions.emplace_back(tank->getPosition());
         }
     }
+
     // Update all towers with troop positions
     for (auto& tower : towers) {
         tower->update(deltaTime, troopPositions);
     }
+
     // Handle Bullet-Troop Collisions
     handleBulletCollisions();
 }
 
+// Handles collisions between bullets and troops (skeletons and tanks)
 void MapScreen::handleBulletCollisions() {
     for (auto& bullet : centralBulletManager.getBullets()) { // Central BulletManager
         if (!bullet.isActive()) continue;
         sf::FloatRect bulletBounds = bullet.getSprite().getGlobalBounds();
-
         // Log bullet bounds
         std::cout << "Bullet bounds: (" << bulletBounds.left << ", "
                   << bulletBounds.top << ", " << bulletBounds.width << ", "
@@ -184,12 +216,10 @@ void MapScreen::handleBulletCollisions() {
         for (auto& skeleton : skeletonSpawn.getSkeletons()) {
             if (!skeleton->isAlive()) continue;
             sf::FloatRect skeletonBounds = skeleton->getSprite().getGlobalBounds();
-
             // Log skeleton bounds
             std::cout << "Skeleton bounds: (" << skeletonBounds.left << ", "
                       << skeletonBounds.top << ", " << skeletonBounds.width << ", "
                       << skeletonBounds.height << ")\n";
-
             if (bulletBounds.intersects(skeletonBounds)) {
                 std::cout << "Bullet hit Skeleton at ("
                           << skeleton->getPosition().x << ", "
@@ -201,14 +231,13 @@ void MapScreen::handleBulletCollisions() {
         }
 
         for (auto& tank : tankSpawn.getTanks()) {
-            if (!tank.isAlive()) continue;
-            sf::FloatRect tankBounds = tank.getSprite().getGlobalBounds();
-
+            if (!tank->isAlive()) continue;
+            sf::FloatRect tankBounds = tank->getSprite().getGlobalBounds();
             if (bulletBounds.intersects(tankBounds)) {
                 std::cout << "Bullet hit Tank at ("
-                          << tank.getPosition().x << ", "
-                          << tank.getPosition().y << ").\n";
-                tank.takeDamage(10); // Apply damage
+                          << tank->getPosition().x << ", "
+                          << tank->getPosition().y << ").\n";
+                tank->takeDamage(10); // Apply damage
                 bullet.deactivate(); // Deactivate bullet
                 break; // Move to next bullet
             }

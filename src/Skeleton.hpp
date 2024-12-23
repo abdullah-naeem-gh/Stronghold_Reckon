@@ -19,6 +19,9 @@ public:
     void takeDamage(int damage);
     bool isAlive() const;
     sf::Sprite& getSprite(); // To access sprite bounds
+    bool isDestroyed() const;
+
+    void playExplosionAnimation(float deltaTime);
 
 private:
     sf::Sprite sprite;
@@ -29,10 +32,25 @@ private:
     float speed = 70.0f;
     float animationTime = 0.0f;
     const float animationFrameDuration = 0.1f; // Change as suitable for your animation
-    int health = 10; // **New Health Attribute**
 
     void setDirection(float dx, float dy);
     void loadTextures();
+
+    int health = 10; // **New Health Attribute**
+    static const int maxHealth = 50;
+
+    // trap
+    void checkForTrap(std::shared_ptr<Tile> tile);
+
+    
+    // Explosion animation
+    std::vector<std::shared_ptr<sf::Texture>> explosionTextures;
+    sf::Sprite explosionSprite;
+    float explosionTime;
+    size_t currentExplosionFrame;
+    bool explosionPlaying;
+    bool isDead; // Add this flag
+
 };
 
 #endif // SKELETON_HPP

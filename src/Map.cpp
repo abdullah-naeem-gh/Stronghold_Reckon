@@ -134,7 +134,19 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
         if (buildingTexture == "../assets/walls/brick_wall.png") {
             std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
             tile->setType(TileType::Wall);
-            tile->setHealth(100); // Set wall health
+            tile->setHealth(10); // Set wall health
+        }
+         // TRAPS
+
+        if (buildingTexture == "../assets/traps/BarrelBomb/barrel.png") {
+            std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+            addTrap(row, col, buildingTexture);
+        }   
+
+        if (buildingTexture == "../assets/buildings/mushroom1.png") {
+            std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+            // tile->setTrap(buildingTexture);
+            addTrap(row, col, buildingTexture);
         }
     }
     saveState();
@@ -356,4 +368,28 @@ std::shared_ptr<Tile> Map::findNearestWall(int startRow, int startCol) const {
     }
 
     return nullptr;
+}
+
+// trap code
+
+bool Map::addTrap(int row, int col, const std::string& trapTexture) {
+    auto tile = getTile(row, col);
+    if (!tile) {
+        std::cerr << "Invalid tile coordinates: (" << row << ", " << col << ").\n";
+        return false;
+    }
+    if (tile->getBuilding() != nullptr) {
+        std::cerr << "Tile already has a building.\n";
+        return false;
+    }
+    if (tile->isBlocked()) {
+        std::cerr << "Cannot place a trap on a blocked tile.\n";
+        return false;
+    }
+    auto trap = std::make_shared<Trap>(trapTexture);
+    tile->setTrap(trap);
+    saveState();
+    // std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+    // std::cout << "Trap texture: " << trapTexture << "\n";
+    return true;
 }

@@ -1,26 +1,45 @@
 #include "Tank.hpp"
 #include "TextureManager.hpp"
-#include "Map.hpp"
 #include <iostream>
 #include <cmath>
-#include <thread>
-#include <chrono>
 
+// Modified Constructor to accept and store path
 Tank::Tank(float x, float y, const std::vector<std::shared_ptr<Tile>>& path)
- : path(path), currentPathIndex(0), health(10) { // Initialized health here
+    : currentPathIndex(0),
+      health(maxHealth),
+      explosionTime(0.0f),
+      currentExplosionFrame(0),
+      explosionPlaying(false),
+      path(path),
+      currentState(State::Moving) { // Initialize state to Moving
     loadTextures();
+    std::cout << "Tank constructor called at (" << x << ", " << y << ").\n";
     if (!directionTextures.empty()) {
-        sprite.setTexture(*directionTextures["left"]); // Start with the left-facing texture
+        sprite.setTexture(*directionTextures["left"]);
     }
-    sprite.setOrigin(static_cast<float>(TANK_WIDTH) / 2.0f, static_cast<float>(TANK_HEIGHT));
+    sprite.setOrigin(TANK_WIDTH / 2.0f, TANK_HEIGHT);
     sprite.setPosition(x, y);
     sprite.setScale(
-        static_cast<float>(TANK_WIDTH) / sprite.getLocalBounds().width,
-        static_cast<float>(TANK_HEIGHT) / sprite.getLocalBounds().height
+        TANK_WIDTH / sprite.getLocalBounds().width,
+        TANK_HEIGHT / sprite.getLocalBounds().height
     );
+
+    // Load explosion textures
+    for (int i = 1; i <= 10; ++i) {
+        std::string explosionPath = "../assets/explosions/Explosion_8/Explosion_" + std::to_string(i) + ".png";
+        auto texture = TextureManager::getInstance().getTexture(explosionPath);
+        if (texture) {
+            explosionTextures.push_back(texture);
+        } else {
+            std::cerr << "Explosion texture not loaded: " << explosionPath << std::endl;
+        }
+    }
+    if (!explosionTextures.empty()) {
+        explosionSprite.setTexture(*explosionTextures[0]);
+        explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
+    }
 }
 
-// Load texture for each direction using fixed paths
 void Tank::loadTextures() {
     std::map<std::string, std::string> directionPaths = {
         {"up", "../assets/enemies/tank/tank_up.png"},
@@ -51,7 +70,85 @@ sf::Vector2f Tank::getPosition() const {
 }
 
 void Tank::draw(sf::RenderWindow& window) const {
-    window.draw(sprite);
+    if (currentState != State::Destroyed) {
+        window.draw(sprite);
+    }
+    if (explosionPlaying) {
+        window.draw(explosionSprite);
+    }
+}
+
+void Tank::update(float deltaTime) {
+    if (currentState == State::Destroyed) {
+        if (explosionPlaying) {
+            // Assuming explosionTime and currentExplosionFrame are managed here
+            // playExplosionAnimation(deltaTime); // Uncomment if implemented
+        }
+        return;
+    }
+    switch (currentState) {
+        case State::Moving:
+            moveTank(deltaTime);
+            break;
+        case State::AttackingWall:
+            attackWall(deltaTime);
+            break;
+        case State::RecalculatingPath:
+            recalculatePath();
+            break;
+        case State::Resting:
+            rest();
+            break;
+        case State::Destroyed:
+            // Handle destruction state if needed
+            break;
+    }
+}
+
+void Tank::moveTank(float deltaTime) { // Renamed to moveTank
+    if (!path.empty() && currentPathIndex < path.size()) {
+        sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
+        sf::Vector2f direction = targetPos - sprite.getPosition();
+        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+        if (distance > 1.0f) {
+            direction /= distance;
+            setDirection(direction.x, direction.y);
+            sprite.move(direction * speed * deltaTime);
+        } else {
+            checkForTrap(path[currentPathIndex]);
+            currentPathIndex++;
+            if (currentPathIndex >= path.size()) {
+                currentState = State::Resting;
+            }
+        }
+    }
+}
+
+void Tank::takeDamage(int damage) {
+    health -= damage;
+    if (health <= 0) {
+        health = 0;
+        std::cout << "Tank destroyed at position ("
+                  << sprite.getPosition().x << ", "
+                  << sprite.getPosition().y << ").\n";
+        currentState = State::Destroyed;
+        explosionPlaying = true;
+        explosionTime = 0.0f;
+        currentExplosionFrame = 0;
+        explosionSprite.setPosition(sprite.getPosition());
+    } else {
+        std::cout << "Tank took " << damage
+                  << " damage, remaining health: " << health << ".\n";
+    }
+}
+
+bool Tank::isAlive() const {
+    return health > 0;
+}
+
+sf::Sprite& Tank::getSprite() {
+    return sprite;
 }
 
 void Tank::setDirection(float dx, float dy) {
@@ -70,69 +167,43 @@ void Tank::setDirection(float dx, float dy) {
     }
 }
 
-void Tank::move(float deltaTime, Map& map) {
-    if (!path.empty() && currentPathIndex < path.size()) {
-        sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
-        sf::Vector2f direction = targetPos - sprite.getPosition();
-        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-        if (distance > 1.0f) {
-            direction /= distance; // Normalize direction
-            setDirection(direction.x, direction.y); // Update direction
-            sprite.move(direction * speed * deltaTime); // Move tank
-        }
-        else {
-            currentPathIndex++; // Move to the next tile in the path
-        }
-    }
-    else if (currentPathIndex >= path.size() && 
-            (getPosition().x != IsometricUtils::tileToScreen(townHall.row, townHall.col).x ||
-             getPosition().y != IsometricUtils::tileToScreen(townHall.row, townHall.col).y)) {
-        std::cout << "Wall encountered. Attacking wall...\n";
-        // Identify the wall tile two tiles in front of the current tile
-        Pathfinding pathFinder(map);
-        TileCoordinates tankTileCoord = {path[currentPathIndex - 1]->getRow(), path[currentPathIndex - 1]->getCol()};
-        std::cout << "Tank at (" << tankTileCoord.row << ", " << tankTileCoord.col << ").\n";
-        std::shared_ptr<Tile> currentTile = map.getTile(tankTileCoord.row, tankTileCoord.col);
-        std::shared_ptr<Tile> nextTile = pathFinder.getNextTileInStraightPath(currentTile, map.getTile(townHall.row, townHall.col));
-        std::cout << "Next tile: (" << nextTile->getRow() << ", " << nextTile->getCol() << ").\n";
-        std::shared_ptr<Tile> wallTile = map.findNearestWall(nextTile->getRow(), nextTile->getCol());
-        std::cout << "Wall encountered at (" << wallTile->getRow() << ", " << wallTile->getCol() 
-                  << "), health: " << wallTile->getHealth() << ".\n";
-        // Attack the wall until its health falls below zero
-        while (wallTile && wallTile->getHealth() > 0) {
-            wallTile->takeDamage(10);
-            std::cout << "Tank attacking wall at (" << wallTile->getRow() << ", " 
-                      << wallTile->getCol() << "). Wall health: " << wallTile->getHealth() << "\n";
-            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Slight delay in attacking
-        }
-        if (wallTile) {
-            wallTile->setBlockStatus(false); // Unblock the wall after destroying it
-        }
-        // Recalculate path to town hall after destroying the wall
-        std::cout << "Wall destroyed. Recalculating path to town hall...\n";
-        path = pathFinder.findPath(map.getTile(tankTileCoord.row, tankTileCoord.col), 
-                                   map.getTile(townHall.row, townHall.col));
-        currentPathIndex = 0;
-    }
-}
-
-void Tank::takeDamage(int damage) {
-    health -= damage;
-    if (health <= 0) {
-        health = 0;
-        std::cout << "Tank destroyed at position (" 
-                  << sprite.getPosition().x << ", " 
-                  << sprite.getPosition().y << ").\n";
+void Tank::attackWall(float deltaTime) {
+    if (wallTile && wallTile->getHealth() > 0) {
+        wallTile->takeDamage(static_cast<int>(3 * deltaTime)); // Example damage value
     } else {
-        std::cout << "Tank took " << damage 
-                  << " damage, remaining health: " << health << ".\n";
+        if (wallTile) wallTile->setBlockStatus(false);
+        currentState = State::RecalculatingPath;
     }
 }
 
-bool Tank::isAlive() const {
-    return health > 0;
+void Tank::recalculatePath() {
+    // Implement path recalculation logic here if needed
+    // For example, find a new path to the town hall
+    // This requires access to the Map class or Pathfinding instance
 }
 
-sf::Sprite& Tank::getSprite() {
-    return sprite;
+void Tank::rest() {
+    // Tank is resting, no actions needed
+}
+
+void Tank::playExplosionAnimation(float deltaTime) {
+    if (explosionPlaying) {
+        explosionTime += deltaTime;
+        if (explosionTime >= 0.1f) { // Adjust the frame duration as needed
+            explosionTime = 0.0f;
+            currentExplosionFrame++;
+            if (currentExplosionFrame < explosionTextures.size()) {
+                explosionSprite.setTexture(*explosionTextures[currentExplosionFrame]);
+            } else {
+                explosionPlaying = false; // Stop the animation after the last frame
+            }
+        }
+    }
+}
+
+void Tank::checkForTrap(std::shared_ptr<Tile> tile) {
+    if (tile->getTrap() && tile->getTrap()->isActive()) {
+        takeDamage(tile->getTrap()->getDamage()); // Example damage value
+        tile->getTrap()->trigger();
+    }
 }

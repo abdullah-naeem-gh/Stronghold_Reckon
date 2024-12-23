@@ -23,6 +23,22 @@ Skeleton::Skeleton(float x, float y, const std::vector<std::shared_ptr<Tile>>& p
     sprite.setScale(1.0f, 1.0f); // Adjust if the skeleton needs to be rendered smaller or larger in-game
 
     sprite.setPosition(x, y);
+    
+    // Load explosion textures
+    for (int i = 1; i <= 8; ++i) {
+        std::string path = "../assets/explosions/Explosion_8/Explosion_" + std::to_string(i) + ".png";
+        auto texture = TextureManager::getInstance().getTexture(path);
+        if (texture) {
+            explosionTextures.push_back(texture);
+        } else {
+            std::cerr << "Explosion texture not loaded: " << path << std::endl;
+        }
+    }
+    if (!explosionTextures.empty()) {
+        explosionSprite.setTexture(*explosionTextures[0]);
+        explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
+    }
+
 }
 
 void Skeleton::loadTextures() {
@@ -74,7 +90,13 @@ void Skeleton::draw(sf::RenderWindow& window, float deltaTime) {
             setDirection(direction.x, direction.y);
         }
     }
-    window.draw(sprite);
+     // window.draw(sprite);
+    if (!explosionPlaying && !isDead) {
+        window.draw(sprite);
+    }
+    if (explosionPlaying) {
+        window.draw(explosionSprite);
+    }
 }
 
 void Skeleton::setDirection(float dx, float dy) {
@@ -95,6 +117,13 @@ void Skeleton::setDirection(float dx, float dy) {
 }
 
 void Skeleton::move(float deltaTime) {
+    if (isDead) {
+        if (explosionPlaying) {
+            playExplosionAnimation(deltaTime);
+        }
+        return;
+    }
+
     if (!path.empty() && currentPathIndex < path.size()) {
         sf::Vector2f targetPos = path[currentPathIndex]->getPosition();
         sf::Vector2f direction = targetPos - sprite.getPosition();
@@ -104,6 +133,7 @@ void Skeleton::move(float deltaTime) {
             setDirection(direction.x, direction.y);
             sprite.move(direction * speed * deltaTime);
         } else {
+            checkForTrap(path[currentPathIndex]);
             currentPathIndex++;
         }
     }
@@ -115,6 +145,11 @@ void Skeleton::takeDamage(int damage) {
         std::cout << "Skeleton destroyed at position (" 
                   << sprite.getPosition().x << ", " 
                   << sprite.getPosition().y << ").\n";
+        isDead = true;
+        explosionPlaying = true;
+        explosionTime = 0.0f;
+        currentExplosionFrame = 0;
+        explosionSprite.setPosition(sprite.getPosition());
     } else {
         std::cout << "Skeleton took " << damage 
                   << " damage, remaining health: " << health << ".\n";
@@ -127,4 +162,32 @@ bool Skeleton::isAlive() const {
 
 sf::Sprite& Skeleton::getSprite() {
     return sprite;
+}
+
+bool Skeleton::isDestroyed() const {
+    return health <= 0;
+}
+
+void Skeleton::checkForTrap(std::shared_ptr<Tile> tile) {
+    if (tile->getTrap() && tile->getTrap()->isActive()) {
+        std::cout << "Skeleton triggered a trap at (" << tile->getRow() << ", " << tile->getCol() << ").\n";
+        takeDamage(tile->getTrap()->getDamage()); // Example damage value
+        tile->getTrap()->trigger();
+    }
+}
+
+void Skeleton::playExplosionAnimation(float deltaTime) {
+    if (explosionPlaying) {
+        explosionTime += deltaTime;
+        if (explosionTime >= 0.1f) { // Adjust the frame duration as needed
+            explosionTime = 0.0f;
+            currentExplosionFrame++;
+            if (currentExplosionFrame < explosionTextures.size()) {
+                explosionSprite.setTexture(*explosionTextures[currentExplosionFrame]);
+            } else {
+                explosionPlaying = false; // Stop the animation after the last frame
+            }
+        }
+    }
+    // delete this;
 }

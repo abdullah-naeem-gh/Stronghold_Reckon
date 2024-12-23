@@ -104,6 +104,10 @@ void Tile::loadTexture() {
             texturePtr = tm.getTexture(texturePath);
             health = 100; // Initialize health for walls
             break;
+        
+        case TileType::Trap:
+            texturePtr = tm.getTexture(trap->getTexturePath());
+            break;
     }
 
     // For non-grass tiles, set the texture and scale
@@ -226,15 +230,19 @@ void Tile::draw(sf::RenderWindow& window) const {
     if (tower) {
         tower->render(window);
     }
+    if (trap) {
+        trap->draw(window, sprite.getPosition().x, sprite.getPosition().y);
+    }
 }
 
 void Tile::takeDamage(int damage) {
     if (isWall()) {
         health -= damage;
-        if (health < 0) {
+        if (health <= 0) {
             health = 0;
             blockStatus = false;
             type = TileType::Grass;
+            building = nullptr;
             updateTexture();
             std::cout << "Wall at (" << row << ", " << col << ") destroyed.\n";
         }
@@ -277,3 +285,34 @@ void Tile::setGrassTileIndex(int index) {
 int Tile::getGrassTileIndex() const {
     return grassTileIndex;
 }
+
+// Traps
+
+void Tile::setTrap(std::shared_ptr<Trap> trapPtr) {
+    std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+    trap = trapPtr;
+}
+
+std::shared_ptr<Trap> Tile::getTrap() const {
+    return trap;
+}
+
+// void Tile::setTrap(const std::string& trapTexture) {
+//     this->trapTexture = trapTexture;
+//     trapActive = true;
+//     type = TileType::Trap;
+//     loadTexture();
+// }
+
+bool Tile::hasTrap() const {
+    return trap != nullptr;
+}
+
+// void Tile::triggerTrap() {
+//     if (trapActive) {
+//         std::cout << "Trap triggered at (" << row << ", " << col << ").\n";
+//         trapActive = false;
+//         type = TileType::Grass; // Reset to grass after triggering
+//         updateTexture();
+//     }
+// }

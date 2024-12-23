@@ -7,12 +7,15 @@
 #include <string>
 #include "Building.hpp"
 #include "Tower.hpp"
+#include "Trap.hpp"
+
 
 enum class TileType {
     Grass,
     Water,
     Road,
-    Wall
+    Wall,
+    Trap
 };
 
 class Tile {
@@ -28,6 +31,9 @@ public:
 
     void setBuilding(std::shared_ptr<Building> buildingPtr);
     std::shared_ptr<Building> getBuilding() const;
+
+    void setTrap(std::shared_ptr<Trap> trapPtr);
+    std::shared_ptr<Trap> getTrap() const;
 
     void setTower(std::shared_ptr<Tower> towerPtr);
     std::shared_ptr<Tower> getTower() const;
@@ -61,6 +67,11 @@ public:
     bool isDestroyed() const;
     void setBlockStatus(bool status);
 
+    // // traps
+    // void setTrap(const std::string& trapTexture);
+    bool hasTrap() const;
+    // void triggerTrap();
+
 private:
     TileType type;
     int row;
@@ -74,6 +85,11 @@ private:
     void loadTexture();
     int health;
     int grassTileIndex;
+    // // traps
+    std::shared_ptr<Trap> trap;
+
+    // std::string trapTexture;
+    // bool trapActive;
 };
 
 #endif // TILE_HPP

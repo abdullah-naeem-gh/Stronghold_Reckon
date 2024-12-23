@@ -1,3 +1,4 @@
+// TankSpawn.hpp
 #ifndef TANKSPAWN_HPP
 #define TANKSPAWN_HPP
 
@@ -5,42 +6,52 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 #include "Map.hpp"
-#include "IsometricUtils.hpp"
+#include "IsometricUtils.hpp" // Included to use TileCoordinates
 #include "Pathfinding.hpp"
-#include <iostream>
-using namespace std;
+#include "Trap.hpp"
+
+// Structure to hold tile coordinates
+// struct TileCoordinates {
+//     int row;
+//     int col;
+// };
 
 class TankSpawn {
 public:
-    // Constructor initializes preset tiles and pathfinder with the provided map
+    // Constructor initializes preset tiles and initializes the pathfinder with the provided map
     TankSpawn(const Map& map);
+
     // Handles events related to tank spawning
     void handleEvent(const sf::Event& event, Map& map);
-    // Updates all active tanks
-    void update(float deltaTime, Map& map); // **Added Update Method**
+
+    // Updates all active tanks and manages spawning logic
+    void update(float deltaTime, Map& map);
+
     // Draws all active tanks on the window
     void draw(sf::RenderWindow& window, float deltaTime, Map& map);
-    // Returns a const reference to the vector of tanks for external access if needed
-    // **New Getter Method**
-    const std::vector<Tank>& getTanks() const;
-    std::vector<Tank>& getTanks(); // Non-const getter
-    // **New Removal Method**
+
+    // Getter Methods
+    const std::vector<std::shared_ptr<Tank>>& getTanks() const;
+
+    // Removal Method
     void removeDeadTanks();
+
 private:
-    std::vector<Tank> tanks; // Stores all active tanks
-    // Pathfinding instance to compute paths for tanks
-    Pathfinding pathFinder;
-    // Preset tiles where tanks can spawn
-    std::vector<TileCoordinates> presetTiles;
+    std::vector<std::shared_ptr<Tank>> tanks; // Active tanks list
+    Pathfinding pathFinder; // Pathfinding utility
+    std::vector<TileCoordinates> presetTiles; // Predefined spawn locations
+
     // Coordinates of the town hall (destination for tanks)
     TileCoordinates townHall = {14, 14};
 
-    size_t nextSpawnIndex;        // Index for the next spawn
-    float timeSinceLastSpawn;     // Timer for spawn interval tracking
-    bool spawningActive;          // Flag indicating whether spawning should happen
-
     // Spawns a tank on a randomly selected preset tile
     void spawnTankOnPresetTile(Map& map);
+
+    size_t nextSpawnIndex; // Index for the next spawn
+    float timeSinceLastSpawn; // Timer for spawn interval tracking
+    bool spawningActive; // Flag indicating whether spawning should happen
+
+    const float spawnInterval = 0.5f; // Time between spawns in seconds
 };
 
 #endif // TANKSPAWN_HPP
