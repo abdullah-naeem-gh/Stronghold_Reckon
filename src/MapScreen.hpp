@@ -22,7 +22,9 @@ public:
     void loadMap(const std::string& filename);
     Map& getMapEntity();
     void update(float deltaTime);
-    void handleBulletCollisions();
+    // void handleBulletCollisions();
+
+    void handleBulletCollisions(float deltatime);
     void setSelectedTrapType(const std::string& trapTexture);
 
     

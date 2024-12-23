@@ -7,11 +7,27 @@
 
 // Structure to store individual tile states
 struct TileState {
+    // TileType type;
+    // std::string texturePath;
+    // int buildingId;
+    // std::string buildingTexturePath;
+    // int grassIndex; // Added to capture grass tile index
+
+    int row;
+    int col;
     TileType type;
     std::string texturePath;
+    int grassIndex;
     int buildingId;
     std::string buildingTexturePath;
-    int grassIndex; // Added to capture grass tile index
+    bool hasTrap;
+
+    std::string trapTexturePath;
+    bool hasTower;
+    int towerId;
+    std::string towerTexturePath;
+
+    bool hasWall;
 };
 
 class GameState {

@@ -8,11 +8,18 @@ class BulletManager;
 
 class Tower {
 public:
-    Tower(sf::Vector2f position, float range, float fireRate, BulletManager& centralBulletManager);
+    Tower(int id, sf::Vector2f position, float range, float fireRate, BulletManager& centralBulletManager, const std::string& texturePath);
     void update(float deltaTime, const std::vector<sf::Vector2f>& troopPositions);
     void render(sf::RenderWindow& window) const;
     bool isWithinRange(sf::Vector2f troopPosition) const;
+
+    int getId() const;
+    std::string getTexturePath() const;
+
 private:
+    int id;
+    std::string texturePath;
+
     sf::Vector2f position;
     float range;
     float fireRate;

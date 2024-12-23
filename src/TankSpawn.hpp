@@ -34,7 +34,7 @@ public:
     const std::vector<std::shared_ptr<Tank>>& getTanks() const;
 
     // Removal Method
-    void removeDeadTanks();
+    // void removeDeadTanks();
 
 private:
     std::vector<std::shared_ptr<Tank>> tanks; // Active tanks list
@@ -51,7 +51,7 @@ private:
     float timeSinceLastSpawn; // Timer for spawn interval tracking
     bool spawningActive; // Flag indicating whether spawning should happen
 
-    const float spawnInterval = 0.5f; // Time between spawns in seconds
+    const float spawnInterval = 2.0f; // Time between spawns in seconds
 };
 
 #endif // TANKSPAWN_HPP

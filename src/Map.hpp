@@ -12,9 +12,13 @@
 #include <SFML/Graphics.hpp>
 #include "IsometricUtils.hpp"
 
+#include "BulletManager.hpp"
+
+
 class Map {
 public:
-    Map(int rows, int cols);
+    // Map(int rows, int cols);
+    Map(int rows, int cols, BulletManager& centralBulletManager);
     void initializeTiles();
     std::shared_ptr<Tile> getTile(int row, int col) const;
     bool addBuilding(int row, int col, const std::string& buildingTexture);
@@ -32,7 +36,11 @@ public:
 
     std::shared_ptr<Tile> findNearestWall(int startRow, int startCol) const;
     bool addTrap(int row, int col, const std::string& trapTexture);
+    int nextBuildingId;
+    int nextTowerId;
 
+
+    
 
 private:
     int rows;
@@ -40,7 +48,9 @@ private:
     std::vector<std::vector<std::shared_ptr<Tile>>> tiles;
     static std::vector<std::vector<TileType>> tileTypeMap; // Added static map
     GameStateManager stateManager;
-    int nextBuildingId;
+
+    BulletManager& centralBulletManager;
+    
     void restoreGameState(const GameState& state);
 };
 

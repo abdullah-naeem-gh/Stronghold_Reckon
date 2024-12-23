@@ -4,11 +4,11 @@
 #include <cmath>
 #include <iostream>
 
-Tower::Tower(sf::Vector2f position, float range, float fireRate, BulletManager& centralBulletManager)
-    : position(position), range(range), fireRate(fireRate), timeSinceLastShot(0.0f),
-      bulletManager(centralBulletManager) {
+Tower::Tower(int id, sf::Vector2f position, float range, float fireRate, BulletManager& centralBulletManager, const std::string& texturePath)
+    : id(id), position(position), range(range), fireRate(fireRate), timeSinceLastShot(0.0f),
+      bulletManager(centralBulletManager), texturePath(texturePath) {
     // Load tower texture
-    auto texture = TextureManager::getInstance().getTexture("../assets/buildings/moontower.png");
+    auto texture = TextureManager::getInstance().getTexture(texturePath);
     if (texture) {
         towerSprite.setTexture(*texture);
         towerSprite.setOrigin(texture->getSize().x / 2.0f, texture->getSize().y / 2.0f);
@@ -16,6 +16,8 @@ Tower::Tower(sf::Vector2f position, float range, float fireRate, BulletManager& 
     } else {
         std::cerr << "Failed to load tower texture.\n";
     }
+
+    std::cout << "Tower created at (" << position.x << ", " << position.y << ") with id = " << id <<"\n";
 }
 
 void Tower::update(float deltaTime, const std::vector<sf::Vector2f>& troopPositions) {
@@ -43,4 +45,13 @@ bool Tower::isWithinRange(sf::Vector2f troopPosition) const {
 void Tower::render(sf::RenderWindow& window) const {
     window.draw(towerSprite);
     // Bullets are managed centrally, so no need to render them here
+}
+
+
+int Tower::getId() const {
+    return id;
+}
+
+std::string Tower::getTexturePath() const {
+    return texturePath;
 }

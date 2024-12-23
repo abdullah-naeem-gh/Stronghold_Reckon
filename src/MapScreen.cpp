@@ -6,7 +6,7 @@
 
 // Constructor: Initializes all components and calls initializeTowers()
 MapScreen::MapScreen(int rows, int cols, const sf::Vector2u& windowSize)
-    : mapEntity(rows, cols), 
+    : mapEntity(rows, cols, centralBulletManager), // Initialize Map with central BulletManager
       uiManager(windowSize), 
       tankSpawn(mapEntity),    // Initialize TankSpawn with mapEntity
       skeletonSpawn(mapEntity),
@@ -61,13 +61,15 @@ void MapScreen::handleEvents(const sf::Event& event, sf::RenderWindow& window) {
                 mapEntity.addTrap(tileCoords.row, tileCoords.col, selectedTrapTexture);
             } else if (!selectedBuildingTexture.empty() && !tile->getBuilding() && !tile->hasTrap()) {
                 if (selectedBuildingTexture == "../assets/buildings/moontower.png") {
-                    mapEntity.addBuilding(tileCoords.row, tileCoords.col, "../assets/buildings/moontower.png");
+                    // mapEntity.addBuilding(tile->getRow(), tile->getCol(), "../assets/buildings/moontower.png");
                     // Initialize a new tower instance
                     sf::Vector2f newTowerPos = IsometricUtils::tileToScreen(tileCoords.row, tileCoords.col);
-                    std::shared_ptr<Tower> newTower = std::make_shared<Tower>(newTowerPos, 200.0f, 1.0f, centralBulletManager);
+                    std::shared_ptr<Tower> newTower = std::make_shared<Tower>((mapEntity.nextTowerId)++, newTowerPos, 200.0f, 1.0f, centralBulletManager, selectedBuildingTexture);
                     towers.push_back(newTower);
+                    tile->setTower(newTower);
                 } else {
-                    mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
+                    // mapEntity.addBuilding(tileCoords.row, tileCoords.col, selectedBuildingTexture);
+                    mapEntity.addBuilding(tile->getRow(), tile->getCol(), selectedBuildingTexture);
                 }
             }
         }
@@ -189,7 +191,7 @@ void MapScreen::update(float deltaTime) {
         }
     }
     for (const auto& tank : tankSpawn.getTanks()) {
-        if (tank->isAlive()) {
+        if (!tank->isDestroyed()) {
             troopPositions.emplace_back(tank->getPosition());
         }
     }
@@ -200,11 +202,11 @@ void MapScreen::update(float deltaTime) {
     }
 
     // Handle Bullet-Troop Collisions
-    handleBulletCollisions();
+    handleBulletCollisions(deltaTime);
 }
 
 // Handles collisions between bullets and troops (skeletons and tanks)
-void MapScreen::handleBulletCollisions() {
+void MapScreen::handleBulletCollisions(float deltaTime) {
     for (auto& bullet : centralBulletManager.getBullets()) { // Central BulletManager
         if (!bullet.isActive()) continue;
         sf::FloatRect bulletBounds = bullet.getSprite().getGlobalBounds();
@@ -231,13 +233,13 @@ void MapScreen::handleBulletCollisions() {
         }
 
         for (auto& tank : tankSpawn.getTanks()) {
-            if (!tank->isAlive()) continue;
+            if (tank->isDestroyed()) continue;
             sf::FloatRect tankBounds = tank->getSprite().getGlobalBounds();
             if (bulletBounds.intersects(tankBounds)) {
                 std::cout << "Bullet hit Tank at ("
                           << tank->getPosition().x << ", "
                           << tank->getPosition().y << ").\n";
-                tank->takeDamage(10); // Apply damage
+                tank->takeDamage(10, deltaTime); // Apply damage
                 bullet.deactivate(); // Deactivate bullet
                 break; // Move to next bullet
             }
@@ -246,5 +248,5 @@ void MapScreen::handleBulletCollisions() {
 
     // Remove Dead Skeletons and Tanks
     skeletonSpawn.removeDeadSkeletons();
-    tankSpawn.removeDeadTanks();
+    // tankSpawn.removeDeadTanks();
 }

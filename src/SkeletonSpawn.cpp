@@ -57,7 +57,8 @@ void SkeletonSpawn::spawnSkeleton(Map& map, const TileCoordinates& spawnLocation
         return;
     }
     // Add skeleton to the list using unique_ptr
-    skeletons.emplace_back(std::make_unique<Skeleton>(skeletonPosition.x, skeletonPosition.y, path));
+    skeletons.emplace_back(std::unique_ptr<Skeleton>(new Skeleton(skeletonPosition.x, skeletonPosition.y, path)));
+    // skeletons.emplace_back(std::make_unique<Skeleton>(skeletonPosition.x, skeletonPosition.y, path));
     std::cout << "Skeleton placed at tile: (" << spawnLocation.row << ", " << spawnLocation.col << ").\n";
 }
 

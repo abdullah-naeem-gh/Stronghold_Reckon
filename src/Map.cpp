@@ -9,8 +9,8 @@
 #include <random>
 
 
-Map::Map(int rows, int cols)
-    : rows(rows), cols(cols), nextBuildingId(1) {
+Map::Map(int rows, int cols, BulletManager& centralBulletManager)
+    : rows(rows), cols(cols), nextBuildingId(1), nextTowerId(1), centralBulletManager(centralBulletManager) {
     initializeTiles();
     saveState(); // Save the initial state
 }
@@ -85,10 +85,15 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
         // Handle tower placement within MapScreen
         // Towers are managed within MapScreen, so no need to instantiate here
         // Just set the building in the map
-        auto building = std::make_shared<Building>(nextBuildingId++, isoPos.x, isoPos.y, buildingTexture);
-        tile->setBuilding(building);
+
+        // auto building = std::make_shared<Building>(nextBuildingId++, isoPos.x, isoPos.y, buildingTexture);
+        // auto building = std::make_shared<Building>(nextBuildingId++, row, col, buildingTexture);
+
+        // tile->setBuilding(building);
     } else {
-        auto building = std::make_shared<Building>(nextBuildingId++, isoPos.x, isoPos.y, buildingTexture);
+        // auto building = std::make_shared<Building>(nextBuildingId++, isoPos.x, isoPos.y, buildingTexture);
+        auto building = std::make_shared<Building>(nextBuildingId++, row, col, buildingTexture);
+
         tile->setBuilding(building);
         tile->setBlockStatus(true); // Block the tile after placing the building
         if (buildingTexture == "../assets/buildings/townhall.png") {
@@ -98,25 +103,28 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
             }
             sf::Vector2f tileCentrePosition = IsometricUtils::tileToScreen(row, col);
             sf::Vector2f buildingPosition = IsometricUtils::tileToScreen(row, col);
-            auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
+            // auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
+            auto building = std::make_shared<Building>(nextBuildingId++, row, col, buildingTexture);
             for (int r = row; r <= row + 1; ++r) {
                 for (int c = col; c <= col + 1; ++c) {
                     auto tile = getTile(r, c);
                     tile->setBuilding(building);
                     tile->setBlockStatus(true);
+                    tile->setPosition(isoPos.x, isoPos.y);
                 }
             }
         }
         if (buildingTexture == "../assets/walls/brick_wall.png") {
             std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
+            tile->setBuilding(building);
             tile->setType(TileType::Wall);
-            tile->setHealth(10); // Set wall health
+            tile->setHealth(100); // Set wall health
         }
          // TRAPS
         if (buildingTexture == "../assets/traps/BarrelBomb/barrel.png" || buildingTexture == "../assets/buildings/mushroom1.png") {
             addTrap(row, col, buildingTexture);
             return true;
-            }
+        }
 
     }
     saveState();
@@ -250,6 +258,40 @@ void Map::redo() {
     }
 }
 
+// void Map::restoreGameState(const GameState& state) {
+//     const auto& tileStates = state.getTileStates();
+//     for (size_t row = 0; row < rows; ++row) {
+//         for (size_t col = 0; col < cols; ++col) {
+//             auto tile = tiles[row][col];
+//             const auto& tileState = tileStates[row][col];
+//             if (tile) {
+//                 tile->setTexturePath(tileState.texturePath); // Set texture first
+//                 tile->setType(tileState.type); // Then set type
+//                 tile->setGrassTileIndex(tileState.grassIndex); // Restore grass index
+//                 if (tileState.buildingId != -1) {
+//                     // Recreate Building object with stored data
+//                     sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
+//                     sf::Vector2f buildingPosition = sf::Vector2f(
+//                         isoPos.x + Tile::TILE_WIDTH / 2.0f,
+//                         isoPos.y + Tile::TILE_HEIGHT
+//                     );
+//                     auto building = std::make_shared<Building>(
+//                         tileState.buildingId, buildingPosition.x, buildingPosition.y, tileState.buildingTexturePath
+//                     );
+//                     tile->setBuilding(building);
+//                 } else {
+//                     tile->setBuilding(nullptr);
+//                 }
+//             }
+//             // Debugging output to verify restoration
+//             std::cout << "Tile (" << tile->getRow() << ", " << tile->getCol() << ") Type: "
+//                       << static_cast<int>(tile->getType()) << ", Blocked: "
+//                       << tile->isBlocked() << ", GrassIndex: "
+//                       << tile->getGrassTileIndex() << "\n";
+//         }
+//     }
+// }
+
 void Map::restoreGameState(const GameState& state) {
     const auto& tileStates = state.getTileStates();
     for (size_t row = 0; row < rows; ++row) {
@@ -261,25 +303,44 @@ void Map::restoreGameState(const GameState& state) {
                 tile->setType(tileState.type); // Then set type
                 tile->setGrassTileIndex(tileState.grassIndex); // Restore grass index
                 if (tileState.buildingId != -1) {
-                    // Recreate Building object with stored data
-                    sf::Vector2f isoPos = IsometricUtils::tileToScreen(row, col);
-                    sf::Vector2f buildingPosition = sf::Vector2f(
-                        isoPos.x + Tile::TILE_WIDTH / 2.0f,
-                        isoPos.y + Tile::TILE_HEIGHT
-                    );
                     auto building = std::make_shared<Building>(
-                        tileState.buildingId, buildingPosition.x, buildingPosition.y, tileState.buildingTexturePath
+                        tileState.buildingId, row, col, tileState.buildingTexturePath
                     );
+                    // if (building->getTexturePath() == "../assets/walls/brick_wall.png") {
+                    //     tile->setType(TileType::Wall);
+                    //     tile->setBlockStatus(true); // Block the tile after placing the building
+                    //     tile->setHealth(10); // Set wall health
+                    // }
                     tile->setBuilding(building);
                 } else {
                     tile->setBuilding(nullptr);
                 }
+                if (tileState.hasTrap) {
+                    auto trap = std::make_shared<Trap>(tileState.trapTexturePath);
+                    tile->setTrap(trap);
+                } else {
+                    tile->setTrap(nullptr);
+                }
+                if (tileState.hasTower) {
+                    std::cout << "Tower placed at tile: (" << row << ", " << col << ").\n";
+                    auto tower = std::make_shared<Tower>(
+                        tileState.towerId, sf::Vector2f(), 200.0f, 1.0f, centralBulletManager, tileState.towerTexturePath
+                    );
+                    tile->setTower(tower);
+                } else {
+                    tile->setTower(nullptr);
+                }
+                if (tileState.hasWall) {
+                    tile->setType(TileType::Wall);
+                    tile->setBlockStatus(true); // Block the tile after placing the building
+                    tile->setHealth(100); // Set wall health
+                }
             }
-            // Debugging output to verify restoration
-            std::cout << "Tile (" << tile->getRow() << ", " << tile->getCol() << ") Type: "
-                      << static_cast<int>(tile->getType()) << ", Blocked: "
-                      << tile->isBlocked() << ", GrassIndex: "
-                      << tile->getGrassTileIndex() << "\n";
+            // // Debugging output to verify restoration
+            // std::cout << "Tile (" << tile->getRow() << ", " << tile->getCol() << ") Type: "
+            //           << static_cast<int>(tile->getType()) << ", Blocked: "
+            //           << tile->isBlocked() << ", GrassIndex: "
+            //           << tile->getGrassTileIndex() << "\n";
         }
     }
 }

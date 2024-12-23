@@ -60,7 +60,7 @@ public:
     const std::vector<std::shared_ptr<Tile>>& getNeighbors() const;
     std::shared_ptr<Tile> getNeighbor(int dx, int dy) const;
 
-    void takeDamage(int damage);
+    void takeDamage(float damage);
     int getHealth() const;
     void setHealth(int health);
 

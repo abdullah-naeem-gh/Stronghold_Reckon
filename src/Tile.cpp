@@ -85,6 +85,8 @@ void Tile::loadTexture() {
                 static_cast<float>(TILE_WIDTH) / static_cast<float>(tileWidth),
                 static_cast<float>(TILE_HEIGHT) / static_cast<float>(tileHeight)
             );
+            
+            // sprite.setOrigin(static_cast<float>(TILE_WIDTH) / 2.0f, static_cast<float>(TILE_HEIGHT) / 2.0f);
 
             break;
         }
@@ -225,7 +227,7 @@ bool Tile::isWall() const {
 void Tile::draw(sf::RenderWindow& window) const {
     window.draw(sprite);
     if (building) {
-        building->draw(window);
+        building->draw(window, sprite.getPosition().x, sprite.getPosition().y);
     }
     if (tower) {
         tower->render(window);
@@ -235,7 +237,7 @@ void Tile::draw(sf::RenderWindow& window) const {
     }
 }
 
-void Tile::takeDamage(int damage) {
+void Tile::takeDamage(float damage) {
     if (isWall()) {
         health -= damage;
         if (health <= 0) {
@@ -246,8 +248,8 @@ void Tile::takeDamage(int damage) {
             updateTexture();
             std::cout << "Wall at (" << row << ", " << col << ") destroyed.\n";
         }
-        std::cout << "Tile at (" << row << ", " << col << ") took " << damage 
-                  << " damage. Health is now " << health << ".\n";
+        // std::cout << "Tile at (" << row << ", " << col << ") took " << damage 
+        //           << " damage. Health is now " << health << ".\n";
     }
 }
 
@@ -289,7 +291,9 @@ int Tile::getGrassTileIndex() const {
 // Traps
 
 void Tile::setTrap(std::shared_ptr<Trap> trapPtr) {
-    std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+    if (trapPtr) {
+        std::cout << "Trap placed at tile: (" << row << ", " << col << ").\n";
+    }
     trap = trapPtr;
 }
 

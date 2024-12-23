@@ -55,18 +55,19 @@ void TankSpawn::spawnTankOnPresetTile(Map& map) {
         sf::Vector2f tankPosition = sf::Vector2f(isoPos.x, isoPos.y + Tile::TILE_HEIGHT);
 
         // Pathfinding from spawn location to the town hall.
-        std::vector<std::shared_ptr<Tile>> path = pathFinder.findPath(
-            map.getTile(spawnLocation.row, spawnLocation.col),
-            map.getTile(townHall.row, townHall.col)
-        );
+        // std::vector<std::shared_ptr<Tile>> path = pathFinder.findPath(
+        //     map.getTile(spawnLocation.row, spawnLocation.col),
+        //     map.getTile(townHall.row, townHall.col)
+        // );
 
-        if (path.empty()) {
-            std::cerr << "No available path from (" << spawnLocation.row << ", " << spawnLocation.col
-                      << ") to (" << townHall.row << ", " << townHall.col << ").\n";
-            return;
-        }
-        tanks.emplace_back(std::make_shared<Tank>(tankPosition.x, tankPosition.y, path));
+        // if (path.empty()) {
+        //     std::cerr << "No available path from (" << spawnLocation.row << ", " << spawnLocation.col
+        //               << ") to (" << townHall.row << ", " << townHall.col << ").\n";
+        //     return;
+        // }
         std::cout << "Tank placed at tile: (" << spawnLocation.row << ", " << spawnLocation.col << ").\n";
+
+        tanks.emplace_back(std::make_shared<Tank>(tankPosition.x, tankPosition.y, map, *map.getTile(townHall.row, townHall.col)));
     } else {
         std::cerr << "No preset tiles available for spawning tanks.\n";
     }
@@ -106,15 +107,15 @@ const std::vector<std::shared_ptr<Tank>>& TankSpawn::getTanks() const {
 }
 
 // Removes dead tanks
-void TankSpawn::removeDeadTanks() {
-    size_t initialSize = tanks.size();
-    tanks.erase(
-        std::remove_if(tanks.begin(), tanks.end(),
-            [](const std::shared_ptr<Tank>& t) { return !t->isAlive(); }),
-        tanks.end()
-    );
-    size_t finalSize = tanks.size();
-    if (initialSize != finalSize) {
-        std::cout << "Removed " << (initialSize - finalSize) << " dead tank(s).\n";
-    }
-}
+// void TankSpawn::removeDeadTanks() {
+//     size_t initialSize = tanks.size();
+//     tanks.erase(
+//         std::remove_if(tanks.begin(), tanks.end(),
+//             [](const std::shared_ptr<Tank>& t) { return !t->isAlive(); }),
+//         tanks.end()
+//     );
+//     size_t finalSize = tanks.size();
+//     if (initialSize != finalSize) {
+//         std::cout << "Removed " << (initialSize - finalSize) << " dead tank(s).\n";
+//     }
+// }

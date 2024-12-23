@@ -56,6 +56,6 @@ std::shared_ptr<Tile> Pathfinding::getTileTwoStepsBehind(std::shared_ptr<Tile> c
 
 void Pathfinding::attackWall(std::shared_ptr<Tile> wallTile) {
     // Implement wall attacking logic
-    wallTile->takeDamage(10); // Example: Deal 10 damage
+    wallTile->takeDamage(10.0f); // Example: Deal 10 damage
     // Optionally remove the wall if damage exceeds threshold
 }
