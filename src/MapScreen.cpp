@@ -220,9 +220,9 @@ void MapScreen::handleBulletCollisions(float deltaTime) {
             if (!skeleton->isAlive()) continue;
             sf::FloatRect skeletonBounds = skeleton->getSprite().getGlobalBounds();
             // Log skeleton bounds
-            std::cout << "Skeleton bounds: (" << skeletonBounds.left << ", "
-                      << skeletonBounds.top << ", " << skeletonBounds.width << ", "
-                      << skeletonBounds.height << ")\n";
+            // std::cout << "Skeleton bounds: (" << skeletonBounds.left << ", "
+            //           << skeletonBounds.top << ", " << skeletonBounds.width << ", "
+            //           << skeletonBounds.height << ")\n";
             if (bulletBounds.intersects(skeletonBounds)) {
                 std::cout << "Bullet hit Skeleton at ("
                           << skeleton->getPosition().x << ", "

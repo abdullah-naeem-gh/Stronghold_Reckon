@@ -63,7 +63,7 @@ void UIManager::loadUI(const std::function<void(const std::string&, bool)>& sele
     auto mushroomTrapCallback = [=]() {
         selectCallback("../assets/traps/MushroomField/mushrooms1.png", true);
     };
-    addButton("../assets/traps/MushroomField/mushrooms1.png", mushroomTrapCallback);
+    addButton("../assets/ui/mushrooms11.png", mushroomTrapCallback);
 }
 
 void UIManager::addButton(const std::string& iconPath, const std::function<void()>& callback) {

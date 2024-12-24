@@ -9,7 +9,11 @@
 
 Pathfinding::Pathfinding(const Map& map) : map(map) {}
 
-std::vector<std::shared_ptr<Tile>> Pathfinding::findPath(std::shared_ptr<Tile> start, std::shared_ptr<Tile> end) {
+std::vector<std::shared_ptr<Tile>> Pathfinding::findPath(
+    std::shared_ptr<Tile> start, 
+    std::shared_ptr<Tile> end, 
+    int stopBeforeWallTiles
+) {
     std::vector<std::shared_ptr<Tile>> path;
     std::shared_ptr<Tile> current = start;
 
@@ -22,12 +26,18 @@ std::vector<std::shared_ptr<Tile>> Pathfinding::findPath(std::shared_ptr<Tile> s
 
         // Check if the next tile is blocked
         if (nextTile->isBlocked()) {
-            // Stop 2 tiles behind the wall
-            auto stopTile = getTileTwoStepsBehind(current, nextTile);
+            // Calculate the stopping tile based on the given parameter
+            auto stopTile = getTileStepsBeforeWall(current, nextTile, stopBeforeWallTiles);
             if (stopTile) {
                 path.push_back(stopTile);
             }
-            return path; // Stop pathfinding after encountering a wall
+
+            // **Ensure that when stopBeforeWallTiles is 0, the wall tile itself is included**
+            if (stopBeforeWallTiles <= 0) {
+                path.push_back(nextTile); // Include the wall tile
+            }
+
+            return path; // Stop pathfinding upon reaching this condition
         }
 
         path.push_back(current);
@@ -36,6 +46,24 @@ std::vector<std::shared_ptr<Tile>> Pathfinding::findPath(std::shared_ptr<Tile> s
 
     path.push_back(end);
     return path;
+}
+
+std::shared_ptr<Tile> Pathfinding::getTileStepsBeforeWall(
+    std::shared_ptr<Tile> current, 
+    std::shared_ptr<Tile> wallTile, 
+    int stopBeforeWallTiles
+) {
+    if (stopBeforeWallTiles <= 0) {
+        // When stopBeforeWallTiles is 0, return the wallTile itself
+        return wallTile;
+    }
+
+    int dx = wallTile->getRow() - current->getRow();
+    int dy = wallTile->getCol() - current->getCol();
+    int stepX = (dx != 0) ? (dx / std::abs(dx)) : 0;
+    int stepY = (dy != 0) ? (dy / std::abs(dy)) : 0;
+
+    return current->getNeighbor(-stopBeforeWallTiles * stepX, -stopBeforeWallTiles * stepY);
 }
 
 std::shared_ptr<Tile> Pathfinding::getNextTileInStraightPath(std::shared_ptr<Tile> current, std::shared_ptr<Tile> end) {

@@ -32,7 +32,7 @@ Tank::Tank(float x, float y, const Map& map, const Tile& townHall)
         col--;
     }
     std::cout << "Finding path from (" << row << ", " << col << ") to town hall at (" << townHall.getRow() << ", " << townHall.getCol() << ").\n";
-    path = pathFinder.findPath(map.getTile(row, col), map.getTile(townHall.getRow(), townHall.getCol()));
+    path = pathFinder.findPath(map.getTile(row, col), map.getTile(townHall.getRow(), townHall.getCol()), 2);
     // for (const auto& tile : path) {
     //     std::cout << "(" << tile->getRow() << ", " << tile->getCol() << ") -> ";
     // }
@@ -143,7 +143,7 @@ void Tank::recalculatePath() {
     // int col = IsometricUtils::screenToTile(x, y, map.getRows(), map.getCols()).col;
     int row = path[currentPathIndex - 1]->getRow();
     int col = path[currentPathIndex - 1]->getCol();
-    path = pathFinder.findPath(map.getTile(row, col), map.getTile(townHall.getRow(), townHall.getCol()));
+    path = pathFinder.findPath(map.getTile(row, col), map.getTile(townHall.getRow(), townHall.getCol()),2);
     currentPathIndex = 0;
     currentState = State::Moving;
 }

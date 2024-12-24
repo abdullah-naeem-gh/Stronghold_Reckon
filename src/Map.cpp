@@ -10,22 +10,32 @@
 
 
 Map::Map(int rows, int cols, BulletManager& centralBulletManager)
-    : rows(rows), cols(cols), nextBuildingId(1), nextTowerId(1), centralBulletManager(centralBulletManager) {
+ : rows(rows), cols(cols), nextBuildingId(1), nextTowerId(1), centralBulletManager(centralBulletManager) {
     initializeTiles();
+    
+    // Place the Town Hall at tile (14, 14)
+    // Ensure that (14,14) is within the map boundaries
+    bool townHallPlaced = addBuilding(14, 14, "../assets/buildings/townhall.png");
+    if (townHallPlaced) {
+        std::cout << "Town hall visually placed at (14, 14).\n";
+    } else {
+        std::cerr << "Failed to place town hall at (14, 14).\n";
+    }
+    
     saveState(); // Save the initial state
 }
 
 void Map::initializeTiles() {
     // Initialize the random number generator
-    std::random_device rd;  // Obtain a random number from hardware
+    std::random_device rd; // Obtain a random number from hardware
     std::mt19937 eng(rd()); // Seed the generator
-
+    
     // Suppose you have 18 different grass textures (0-17)
-    std::uniform_int_distribution<> distr(0, 17); 
-
+    std::uniform_int_distribution<> distr(0, 17);
+    
     // Resize the tiles vector
     tiles.resize(rows, std::vector<std::shared_ptr<Tile>>(cols, nullptr));
-
+    
     // Iterate over each tile position
     for (int row = 0; row < rows; ++row) {
         for (int col = 0; col < cols; ++col) {
@@ -97,25 +107,23 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
         tile->setBuilding(building);
         tile->setBlockStatus(true); // Block the tile after placing the building
         if (buildingTexture == "../assets/buildings/townhall.png") {
-            if (row < 0 || row >= rows - 1 || col < 0 || col >= cols - 1) {
+            if (row < 0 || row >= rows || col < 0 || col >= cols) {
                 std::cerr << "Invalid tile coordinates for town hall placement.\n";
                 return false;
             }
-            sf::Vector2f tileCentrePosition = IsometricUtils::tileToScreen(row, col);
+            
             sf::Vector2f buildingPosition = IsometricUtils::tileToScreen(row, col);
-            // auto building = std::make_shared<Building>(nextBuildingId++, buildingPosition.x, buildingPosition.y, buildingTexture);
             auto building = std::make_shared<Building>(nextBuildingId++, row, col, buildingTexture);
-            for (int r = row; r <= row + 1; ++r) {
-                for (int c = col; c <= col + 1; ++c) {
-                    auto tile = getTile(r, c);
-                    tile->setBuilding(building);
-                    tile->setBlockStatus(true);
-                    tile->setPosition(isoPos.x, isoPos.y);
-                }
+            auto tile = getTile(row, col);
+            
+            if (tile) {
+                tile->setBuilding(building);
+                tile->setBlockStatus(true);
+                tile->setPosition(buildingPosition.x, buildingPosition.y);
             }
         }
         if (buildingTexture == "../assets/walls/brick_wall.png") {
-            std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
+            // std::cout << "Wall placed at tile: (" << row << ", " << col << ").\n";
             tile->setBuilding(building);
             tile->setType(TileType::Wall);
             tile->setHealth(100); // Set wall health

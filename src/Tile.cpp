@@ -243,16 +243,17 @@ void Tile::draw(sf::RenderWindow& window) const {
 void Tile::takeDamage(float damage) {
     if (isWall()) {
         health -= damage;
+        std::cout << "Wall at (" << row << ", " << col << ") takes " 
+                  << damage << " damage, remaining health: " << health << ".\n";
+
         if (health <= 0) {
             health = 0;
             blockStatus = false;
             type = TileType::Grass;
             building = nullptr;
-            updateTexture();
+            updateTexture();  // Update visual representation
             std::cout << "Wall at (" << row << ", " << col << ") destroyed.\n";
         }
-        // std::cout << "Tile at (" << row << ", " << col << ") took " << damage 
-        //           << " damage. Health is now " << health << ".\n";
     }
 }
 

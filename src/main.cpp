@@ -49,6 +49,10 @@ int main() {
                     case sf::Keyboard::Y:
                         mapScreen.getMapEntity().redo(); // Handle redo
                         break;
+
+                    case sf::Keyboard::M:
+                        window.close();
+                        break;
                     default:
                         break;
                 }

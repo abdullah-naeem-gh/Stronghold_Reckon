@@ -11,7 +11,10 @@ class Pathfinding {
 public:
     Pathfinding(const Map& map);
 
-    std::vector<std::shared_ptr<Tile>> findPath(std::shared_ptr<Tile> start, std::shared_ptr<Tile> end);
+    std::vector<std::shared_ptr<Tile>> findPath(std::shared_ptr<Tile> start, std::shared_ptr<Tile> end, int stopBeforeWallTiles);
+
+    // std::vector<std::shared_ptr<Tile>> findPath(std::shared_ptr<Tile> start, std::shared_ptr<Tile> end);
+    std::shared_ptr<Tile> getTileStepsBeforeWall(std::shared_ptr<Tile> current, std::shared_ptr<Tile> wallTile, int stopBeforeWallTiles);
     std::shared_ptr<Tile> getNextTileInStraightPath(std::shared_ptr<Tile> current, std::shared_ptr<Tile> end);
     std::shared_ptr<Tile> getTileTwoStepsBehind(std::shared_ptr<Tile> current, std::shared_ptr<Tile> wallTile);
     
