@@ -3,14 +3,22 @@
 #include "MapScreen.hpp"
 #include "IsometricUtils.hpp"
 #include "TextureManager.hpp" // **(1) Include the TextureManager header**
+#include "GameState.hpp"
 #include <iostream>
+
+void checkGameEndCondition(sf::RenderWindow& window, int tanksAtTownHall, int skeletonsAtTownHall) {
+    if (tanksAtTownHall >= 1 || skeletonsAtTownHall >= 10) {
+        window.close();
+        std::cout << "Game Over! " << (tanksAtTownHall >= 3 ? "3 Tanks" : "10 Skeletons") << " reached the town hall." << std::endl;
+    }
+}
 
 int main() {
     const int WINDOW_WIDTH = 1280;
     const int WINDOW_HEIGHT = 720;
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Stronghold Reckoning");
     window.setFramerateLimit(60);
-    
+
     // **(2) Load the sprite sheet before initializing MapScreen**
     TextureManager& tm = TextureManager::getInstance();
     std::string spriteSheetPath = "../assets/tiles/spritesheet.png"; // **Ensure this path is correct relative to the executable**
@@ -24,6 +32,8 @@ int main() {
     // For example, a 30x30 map
     MapScreen mapScreen(30, 30, window.getSize());
     sf::Clock deltaClock;
+
+    
     
     while (window.isOpen()) {
         sf::Time deltaTime = deltaClock.restart();
@@ -59,6 +69,7 @@ int main() {
             }
             // Delegate event handling to MapScreen
             mapScreen.handleEvents(event, window);
+            checkGameEndCondition(window, tanksAtTownHall, skeletonsAtTownHall);
         }
         
         // Update camera position

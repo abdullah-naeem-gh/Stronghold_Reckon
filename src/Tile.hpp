@@ -15,7 +15,8 @@ enum class TileType {
     Water,
     Road,
     Wall,
-    Trap
+    Trap,
+    Tower
 };
 
 class Tile {

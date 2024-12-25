@@ -110,6 +110,11 @@ void Tile::loadTexture() {
         case TileType::Trap:
             texturePtr = tm.getTexture(trap->getTexturePath());
             break;
+
+        case TileType::Tower:
+            texturePtr = tm.getTexture(tower->getTexturePath());
+            break;
+
     }
 
     // For non-grass tiles, set the texture and scale
@@ -139,6 +144,8 @@ void Tile::setType(TileType newType) {
         // Define which tile types are blocked
         switch (type) {
             case TileType::Water:
+            case TileType::Trap:
+            case TileType::Tower:
             case TileType::Wall:
                 blockStatus = true;
                 if (type == TileType::Wall) {
@@ -243,8 +250,8 @@ void Tile::draw(sf::RenderWindow& window) const {
 void Tile::takeDamage(float damage) {
     if (isWall()) {
         health -= damage;
-        std::cout << "Wall at (" << row << ", " << col << ") takes " 
-                  << damage << " damage, remaining health: " << health << ".\n";
+        // std::cout << "Wall at (" << row << ", " << col << ") takes " 
+        //           << damage << " damage, remaining health: " << health << ".\n";
 
         if (health <= 0) {
             health = 0;

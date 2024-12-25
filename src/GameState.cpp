@@ -2,6 +2,10 @@
 #include "Building.hpp"
 #include "Tile.hpp"
 
+
+int tanksAtTownHall = 0;
+int skeletonsAtTownHall = 0;
+
 // Constructor that captures the current state of all tiles
 GameState::GameState(const std::vector<std::vector<std::shared_ptr<Tile>>>& tiles) {
     tileStates.resize(tiles.size());

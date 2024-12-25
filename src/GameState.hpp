@@ -5,6 +5,9 @@
 #include <vector>
 #include <string>
 
+extern int tanksAtTownHall;
+extern int skeletonsAtTownHall;
+
 // Structure to store individual tile states
 struct TileState {
     // TileType type;

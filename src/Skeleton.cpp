@@ -17,20 +17,20 @@ Skeleton::Skeleton(float x, float y, const std::vector<std::shared_ptr<Tile>>& p
     sprite.setPosition(x, y);
 
     // Load explosion textures
-    for (int i = 1; i <= 8; ++i) {
-        std::string pathStr = "../assets/explosions/Explosion_/Explosion_" + std::to_string(i) + ".png";
-        auto texture = TextureManager::getInstance().getTexture(pathStr);
-        if (texture) {
-            explosionTextures.push_back(texture);
-        } else {
-            std::cerr << "Explosion texture not loaded: " << pathStr << std::endl;
-        }
-    }
+    // for (int i = 1; i <= 8; ++i) {
+    //     std::string pathStr = "../assets/explosions/Explosion_/Explosion_" + std::to_string(i) + ".png";
+    //     auto texture = TextureManager::getInstance().getTexture(pathStr);
+    //     if (texture) {
+    //         explosionTextures.push_back(texture);
+    //     } else {
+    //         std::cerr << "Explosion texture not loaded: " << pathStr << std::endl;
+    //     }
+    // }
 
-    if (!explosionTextures.empty()) {
-        explosionSprite.setTexture(*explosionTextures[0]);
-        explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
-    }
+    // if (!explosionTextures.empty()) {
+    //     explosionSprite.setTexture(*explosionTextures[0]);
+    //     explosionSprite.setOrigin(explosionSprite.getLocalBounds().width / 2.0f, explosionSprite.getLocalBounds().height / 2.0f);
+    // }
 }
 
 void Skeleton::loadTextures() {
@@ -130,6 +130,13 @@ void Skeleton::move(float deltaTime) {
             currentWall = currentTile;
             damageWall();  // Call damageWall instead of explodeWall
             recalculatePath();
+            return;
+        }
+
+        if (currentTile->getRow() == 14 && currentTile->getCol() == 14) {
+            // std::cout << "Skeleton reached town hall. Mission accomplished!\n";
+            path.clear();
+            skeletonsAtTownHall++;
             return;
         }
 

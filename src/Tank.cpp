@@ -83,11 +83,12 @@ void Tank::update(float deltaTime) {
 }
 
 void Tank::move(float deltaTime) {
-    if (path[currentPathIndex]->getRow() == townHall.getRow() && path[currentPathIndex]->getCol() == townHall.getCol()) {
+    if ((path[currentPathIndex]->getRow() == townHall.getRow() + 1 || path[currentPathIndex]->getRow() == townHall.getRow() - 1 || path[currentPathIndex]->getRow() == townHall.getRow()) && (path[currentPathIndex]->getCol() == townHall.getCol() + 1 || path[currentPathIndex]->getCol() == townHall.getCol() - 1 || path[currentPathIndex]->getCol() == townHall.getCol())) {
         std::cout << "Tank reached town hall. Mission accomplished!\n";
         path.clear();
         // currentPathIndex = 0;
         currentState = State::Resting;
+        tanksAtTownHall++;
     }
     if (currentState != State::Resting) {
         if (currentPathIndex < path.size()) {
@@ -106,13 +107,22 @@ void Tank::move(float deltaTime) {
             }
 
             if (currentPathIndex >= path.size()) {
-                wallTile = map.findNearestWall(currentTile->getRow(), currentTile->getCol());
-                // wallTile = path[currentPathIndex + 1];
-                currentState = State::AttackingWall;
-                std::cout << "Tank reached wall at (" << wallTile->getRow() << ", " << wallTile->getCol() << ").\n";
+                // if (!((path[currentPathIndex]->getRow() == townHall.getRow() + 1 || path[currentPathIndex]->getRow() == townHall.getRow() - 1 || path[currentPathIndex]->getRow() == townHall.getRow()) && (path[currentPathIndex]->getCol() == townHall.getCol() + 1 || path[currentPathIndex]->getCol() == townHall.getCol() - 1 || path[currentPathIndex]->getCol() == townHall.getCol())))
+                {
+                    wallTile = map.findNearestWall(currentTile->getRow(), currentTile->getCol());
+                    // wallTile = path[currentPathIndex + 1];
+                    currentState = State::AttackingWall;
+                    std::cout << "Tank reached wall at (" << wallTile->getRow() << ", " << wallTile->getCol() << ").\n";
+                    if (wallTile->getRow() == townHall.getRow() && wallTile->getCol() == townHall.getCol()) {
+                        // std::cout << "Tank reached town hall. Mission accomplished!\n";
+                        path.clear();
+                        // currentPathIndex = 0;
+                        currentState = State::Resting;
+                        tanksAtTownHall++;
+                    }
+                }
             }
         } 
-        
         else {
             currentState = State::RecalculatingPath;
         }

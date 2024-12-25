@@ -115,7 +115,7 @@ bool Map::addBuilding(int row, int col, const std::string& buildingTexture) {
             sf::Vector2f buildingPosition = IsometricUtils::tileToScreen(row, col);
             auto building = std::make_shared<Building>(nextBuildingId++, row, col, buildingTexture);
             auto tile = getTile(row, col);
-            
+                        
             if (tile) {
                 tile->setBuilding(building);
                 tile->setBlockStatus(true);
