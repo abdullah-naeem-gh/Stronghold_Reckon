@@ -73,9 +73,9 @@ After successful compilation, run the executable:
 
 - **W/S**: Move camera up/down.
 - **A/D**: Move camera left/right.
-- **L**: Load a saved map.
-- **O**: Save the current map.
 - **Z/Y**: Undo/Redo actions using the stack.
+- **I**: To Generate Skeleton Wave
+- **P**: to Generate Tank Wave
 
 ---
 
